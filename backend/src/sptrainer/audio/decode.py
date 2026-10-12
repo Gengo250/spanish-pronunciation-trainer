@@ -1,8 +1,8 @@
-"""Decodificacao do audio que chega do navegador.
+"""Decoding the audio that arrives from the browser.
 
-O MediaRecorder entrega webm/opus (ou ogg, ou mp4 conforme o browser). Tanto o
-faster-whisper quanto o wav2vec2 querem PCM mono 16 kHz, entao o ffmpeg faz a
-ponte. E o unico processo externo do caminho de avaliacao.
+MediaRecorder delivers webm/opus (or ogg, or mp4 depending on the browser).
+Both faster-whisper and wav2vec2 want mono 16 kHz PCM, so ffmpeg bridges the
+gap. It is the only external process in the assessment path.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ SAMPLE_RATE = 16000
 
 
 class AudioDecodeError(RuntimeError):
-    """O audio enviado nao pode ser decodificado."""
+    """The uploaded audio could not be decoded."""
 
 
 def ffmpeg_path() -> str:
@@ -27,10 +27,10 @@ def ffmpeg_path() -> str:
 
 
 def decode_to_pcm16(data: bytes, sample_rate: int = SAMPLE_RATE) -> np.ndarray:
-    """Converte bytes de audio comprimido em int16 mono na taxa pedida.
+    """Converts compressed audio bytes into mono int16 at the requested rate.
 
-    Aceita qualquer formato que o ffmpeg leia (webm/opus, ogg, mp4, wav, mp3).
-    Devolve um array 1-D int16.
+    Accepts any format ffmpeg can read (webm/opus, ogg, mp4, wav, mp3).
+    Returns a 1-D int16 array.
     """
     if not data:
         raise AudioDecodeError("No audio was received.")
@@ -49,7 +49,7 @@ def decode_to_pcm16(data: bytes, sample_rate: int = SAMPLE_RATE) -> np.ndarray:
         check=False,
     )
     if result.returncode != 0:
-        detail = result.stderr.decode("utf-8", "replace").strip() or f"codigo {result.returncode}"
+        detail = result.stderr.decode("utf-8", "replace").strip() or f"exit code {result.returncode}"
         raise AudioDecodeError(f"ffmpeg could not decode the uploaded audio: {detail}")
     if not result.stdout:
         raise AudioDecodeError("ffmpeg returned empty audio.")

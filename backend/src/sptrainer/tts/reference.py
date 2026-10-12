@@ -1,18 +1,18 @@
-"""Perfil acustico do audio de referencia de cada carta.
+"""Acoustic profile of each card's reference audio.
 
-Existe por causa de um resultado medido: um limiar absoluto de GOP acusa erro em
-audio comprovadamente correto -- a sinalefa entre palavras, as aproximantes
-intervocalicas e as palavras atonas tem GOP naturalmente baixo mesmo numa
-pronuncia perfeita. Em 79 fonemas, o limiar absoluto marcou 5 falsos positivos
-na propria referencia da ElevenLabs.
+It exists because of a measured result: an absolute GOP threshold flags errors
+in audio known to be correct -- synalepha between words, intervocalic
+approximants and unstressed words all have naturally low GOP even in perfect
+pronunciation. Over 79 phonemes, the absolute threshold marked 5 false positives
+on ElevenLabs' own reference.
 
-A saida e comparar o aluno com a referencia **da mesma frase**, som a som. Aquilo
-que e intrinsecamente fraco e fraco nos dois, entao a diferenca fica perto de
-zero e nao vira erro. Com isso os falsos positivos caem a zero por construcao,
-sem perder deteccao.
+The way out is to compare the learner against the reference **of the same
+sentence**, sound by sound. What is intrinsically weak is weak on both sides, so
+the difference stays near zero and does not become an error. False positives
+then fall to zero by construction, with no loss of detection.
 
-O perfil e calculado uma vez por carta e guardado ao lado do MP3 em cache: custa
-uma passada do modelo (~160 ms) na primeira vez e nada depois.
+The profile is computed once per card and stored next to the cached MP3: it
+costs one pass of the model (~160 ms) the first time and nothing afterwards.
 """
 
 from __future__ import annotations
@@ -29,24 +29,24 @@ logger = logging.getLogger(__name__)
 
 PROFILE_VERSION = "2"
 
-# Abaixo disto nao ha ritmo a comparar: uma palavra isolada nao tem velocidade de
-# fala, so duracao.
+# Below this there is no rhythm to compare: a single word has no speech rate,
+# only duration.
 MIN_WORDS_FOR_RATE = 2
 
 
 @dataclass
 class ReferenceProfile:
     gop: list[float] | None = None
-    """GOP por fonema esperado no audio de referencia."""
+    """GOP per expected phoneme in the reference audio."""
 
     speech_rate: float | None = None
-    """Palavras por segundo na referencia, usado como base da fluencia."""
+    """Words per second in the reference, used as the fluency baseline."""
 
     duration: float = 0.0
 
 
 class ReferenceProfiler:
-    """Calcula e guarda o perfil acustico da referencia de cada carta."""
+    """Computes and stores the acoustic profile of each card's reference."""
 
     def __init__(self, cache, recognizer, settings) -> None:
         self.cache = cache
@@ -57,14 +57,14 @@ class ReferenceProfiler:
         return audio_path.with_suffix(audio_path.suffix + ".profile.json")
 
     def profile(self, text: str, expected_phonemes: list[str]) -> ReferenceProfile:
-        """Perfil da carta. Devolve um perfil vazio se nada disso for possivel."""
+        """The card's profile. Returns an empty profile if none of this is possible."""
         eleven = self.settings.elevenlabs
         try:
             reference = self.cache.synthesize(
                 text, eleven.voice_id, eleven.model_id, eleven.output_format
             )
-        except Exception as exc:  # noqa: BLE001 - sem referencia a avaliacao segue
-            logger.info("sem audio de referencia para %r: %s", text[:40], exc)
+        except Exception as exc:  # noqa: BLE001 - assessment carries on without a reference
+            logger.info("no reference audio for %r: %s", text[:40], exc)
             return ReferenceProfile()
 
         path = self._profile_path(reference.path)
@@ -81,21 +81,21 @@ class ReferenceProfiler:
                         duration=stored.get("duration", 0.0),
                     )
             except (OSError, ValueError) as exc:
-                logger.warning("perfil de referencia ilegivel em %s: %s", path, exc)
+                logger.warning("unreadable reference profile at %s: %s", path, exc)
 
         try:
             pcm = decode_to_pcm16(reference.audio)
         except Exception as exc:  # noqa: BLE001
-            logger.warning("nao consegui decodificar a referencia: %s", exc)
+            logger.warning("could not decode the reference: %s", exc)
             return ReferenceProfile()
 
         duration = duration_seconds(to_float32(pcm))
-        # O silencio das bordas precisa sair: o ritmo do aluno vem dos
-        # timestamps do Whisper, que ja o ignoram. Medir a referencia pela
-        # duracao cheia faria toda carta parecer falada rapido demais.
+        # The edge silence has to go: the learner's rhythm comes from Whisper's
+        # timestamps, which already ignore it. Measuring the reference by its
+        # full duration would make every card look spoken too fast.
         span = speech_span(pcm)
         words = len(text.split())
-        # Com uma palavra so nao existe "ritmo" para comparar.
+        # With a single word there is no "rhythm" to compare.
         rate = (words / span) if span > 0 and words >= MIN_WORDS_FOR_RATE else None
 
         gop = None
@@ -105,7 +105,7 @@ class ReferenceProfiler:
                     normalize_for_wav2vec2(pcm), expected_phonemes
                 ).gop
             except Exception as exc:  # noqa: BLE001
-                logger.warning("perfil acustico da referencia falhou: %s", exc)
+                logger.warning("acoustic profile of the reference failed: %s", exc)
 
         profile = ReferenceProfile(gop=gop, speech_rate=rate, duration=duration)
         try:
@@ -121,5 +121,5 @@ class ReferenceProfiler:
                 encoding="utf-8",
             )
         except OSError as exc:
-            logger.warning("nao consegui gravar o perfil de referencia: %s", exc)
+            logger.warning("could not write the reference profile: %s", exc)
         return profile

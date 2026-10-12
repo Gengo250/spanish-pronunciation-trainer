@@ -1,4 +1,4 @@
-"""O cache de TTS e o que impede a cota da ElevenLabs de evaporar."""
+"""The TTS cache is what keeps the ElevenLabs quota from evaporating."""
 
 import json
 
@@ -12,7 +12,7 @@ VOICE, MODEL, FMT = "voice-1", "eleven_multilingual_v2", "mp3_44100_128"
 def test_same_input_same_key():
     a = cache_key("Hola", VOICE, MODEL, FMT)
     b = cache_key("  Hola  ", VOICE, MODEL, FMT)
-    assert a == b, "espacos nas bordas nao podem gerar audio novo"
+    assert a == b, "edge whitespace must not generate new audio"
 
 
 @pytest.mark.parametrize(

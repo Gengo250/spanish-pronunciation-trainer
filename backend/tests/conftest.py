@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 
 class FakeSynthesizer:
-    """Sintetizador de mentira: conta chamadas em vez de gastar creditos."""
+    """Fake synthesizer: counts calls instead of spending credits."""
 
     def __init__(self, audio: bytes = b"ID3-fake-mp3-bytes") -> None:
         self.audio = audio
@@ -44,7 +44,7 @@ class FakeWord:
 
 
 class FakeTranscriber:
-    """Transcritor controlado: os testes de avaliacao nao devem depender do Whisper."""
+    """Controlled transcriber: assessment tests must not depend on Whisper."""
 
     def __init__(self, text="", words=None):
         self.text, self.words = text, words

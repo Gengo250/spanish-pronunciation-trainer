@@ -1,4 +1,4 @@
-"""Medidas de audio -- em especial o span de fala, que calibra a fluencia."""
+"""Audio measurements -- above all the speech span, which calibrates fluency."""
 
 import numpy as np
 import pytest
@@ -16,10 +16,10 @@ def silence(seconds, sample_rate=16000):
 
 
 def test_span_ignores_leading_and_trailing_silence():
-    """O bug real: o MP3 da ElevenLabs tem silencio nas bordas e o Whisper nao.
+    """The real bug: the ElevenLabs MP3 has silence at the edges and Whisper does not.
 
-    Medir a referencia pela duracao cheia fazia toda carta parecer falada rapido
-    demais -- inclusive o proprio audio de referencia contra ele mesmo.
+    Measuring the reference by its full duration made every card look spoken far
+    too fast -- including the reference audio against itself.
     """
     clip = np.concatenate([silence(0.5), tone(1.0), silence(0.8)])
     assert len(clip) / 16000 == pytest.approx(2.3, abs=0.01)

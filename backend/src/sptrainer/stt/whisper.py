@@ -1,9 +1,9 @@
-"""Speech-to-Text local com faster-whisper.
+"""Local speech-to-text with faster-whisper.
 
-Adaptado de `voice-assistant/src/voice_assistant/transcription.py`. Duas mudancas
-em relacao ao prototipo: o idioma padrao e espanhol e os timestamps por palavra
-vem ligados -- deles saem ritmo, pausas e a ancoragem de cada fonema na palavra
-certa.
+Adapted from `voice-assistant/src/voice_assistant/transcription.py`. Two changes
+from the prototype: the default language is Spanish, and per-word timestamps are
+on -- rhythm, pauses and the anchoring of each phoneme to the right word all
+come from them.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from ..audio.utils import to_float32
 
 
 class TranscriptionError(RuntimeError):
-    """Falha ao carregar o modelo ou transcrever o audio."""
+    """Failure loading the model or transcribing the audio."""
 
 
 @dataclass
@@ -43,7 +43,7 @@ class Transcript:
 
 
 class Transcriber:
-    """Wrapper fino sobre faster-whisper, com carregamento preguicoso do modelo."""
+    """Thin wrapper over faster-whisper, with lazy model loading."""
 
     def __init__(
         self,
@@ -59,13 +59,13 @@ class Transcriber:
         self._model = None
 
     def load(self):
-        """Carrega o modelo (baixa do HuggingFace no primeiro uso)."""
+        """Loads the model (downloads from HuggingFace on first use)."""
         if self._model is None:
             try:
                 from faster_whisper import WhisperModel
             except ImportError as exc:  # pragma: no cover
                 raise TranscriptionError(
-                    "faster-whisper nao esta instalado. Rode: uv sync"
+                    "faster-whisper is not installed. Run: uv sync"
                 ) from exc
             try:
                 self._model = WhisperModel(
@@ -73,16 +73,16 @@ class Transcriber:
                 )
             except Exception as exc:
                 raise TranscriptionError(
-                    f"Nao foi possivel carregar o modelo Whisper {self.model_size!r} "
-                    f"em {self.device}/{self.compute_type}: {exc}"
+                    f"Could not load the Whisper model {self.model_size!r} "
+                    f"on {self.device}/{self.compute_type}: {exc}"
                 ) from exc
         return self._model
 
     def transcribe(self, audio: np.ndarray, sample_rate: int = 16000) -> Transcript:
-        """Transcreve audio int16 ou float32 mono a 16 kHz."""
+        """Transcribes mono int16 or float32 audio at 16 kHz."""
         if sample_rate != 16000:
             raise TranscriptionError(
-                f"faster-whisper espera 16000 Hz, recebi {sample_rate} Hz."
+                f"faster-whisper expects 16000 Hz, got {sample_rate} Hz."
             )
         if audio.size == 0:
             return Transcript(text="", language=self.language, duration=0.0)
@@ -112,7 +112,7 @@ class Transcriber:
                         )
                     )
         except Exception as exc:
-            raise TranscriptionError(f"Falha ao transcrever: {exc}") from exc
+            raise TranscriptionError(f"Transcription failed: {exc}") from exc
 
         return Transcript(
             text=" ".join(t for t in texts if t).strip(),

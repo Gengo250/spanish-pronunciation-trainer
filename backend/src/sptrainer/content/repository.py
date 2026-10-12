@@ -1,9 +1,9 @@
-"""Leitura e escrita de baralhos em JSON e CSV.
+"""Reading and writing decks in JSON and CSV.
 
-JSON e o formato nativo (aninhamento e listas saem de graca). CSV existe porque
-e onde conteudo de idioma costuma ser escrito de verdade -- planilha, revisao a
-quatro maos, importacao de material pronto. Campos de lista viram texto separado
-por `;` na ida e voltam a ser lista na volta, entao o round-trip e sem perda.
+JSON is the native format (nesting and lists come for free). CSV exists because
+it is where language content actually gets written -- a spreadsheet, a review by
+four hands, importing ready-made material. List fields become `;`-separated text
+on the way out and lists again on the way back, so the round-trip is lossless.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ CSV_COLUMNS = (
 
 
 class ContentError(RuntimeError):
-    """Baralho malformado."""
+    """Malformed deck."""
 
 
 # --- JSON ------------------------------------------------------------------
@@ -39,13 +39,13 @@ def load_json(path: str | Path) -> Deck:
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
-        raise ContentError(f"baralho nao encontrado: {path}") from exc
+        raise ContentError(f"deck not found: {path}") from exc
     except json.JSONDecodeError as exc:
-        raise ContentError(f"JSON invalido em {path}: {exc}") from exc
+        raise ContentError(f"invalid JSON in {path}: {exc}") from exc
     try:
         return Deck.model_validate(raw)
     except ValidationError as exc:
-        raise ContentError(f"baralho invalido em {path}: {exc}") from exc
+        raise ContentError(f"invalid deck in {path}: {exc}") from exc
 
 
 def save_json(deck: Deck, path: str | Path) -> Path:
@@ -86,7 +86,7 @@ def _from_row(row: dict[str, str]) -> Flashcard:
     try:
         return Flashcard.model_validate(data)
     except ValidationError as exc:
-        raise ContentError(f"linha invalida (id={row.get('id')!r}): {exc}") from exc
+        raise ContentError(f"invalid row (id={row.get('id')!r}): {exc}") from exc
 
 
 def dumps_csv(deck: Deck) -> str:
@@ -101,12 +101,12 @@ def dumps_csv(deck: Deck) -> str:
 def loads_csv(text: str, name: str = "imported") -> Deck:
     reader = csv.DictReader(io.StringIO(text))
     if reader.fieldnames is None:
-        raise ContentError("CSV sem cabecalho.")
+        raise ContentError("CSV without a header.")
     missing = {"id", "text", "translation", "level", "card_type", "category"} - set(
         reader.fieldnames
     )
     if missing:
-        raise ContentError(f"CSV sem as colunas obrigatorias: {', '.join(sorted(missing))}")
+        raise ContentError(f"CSV missing required columns: {', '.join(sorted(missing))}")
     return Deck(name=name, cards=[_from_row(row) for row in reader])
 
 
@@ -122,4 +122,4 @@ def load_csv(path: str | Path) -> Deck:
     try:
         return loads_csv(path.read_text(encoding="utf-8"), name=path.stem)
     except FileNotFoundError as exc:
-        raise ContentError(f"baralho nao encontrado: {path}") from exc
+        raise ContentError(f"deck not found: {path}") from exc

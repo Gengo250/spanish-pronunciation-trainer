@@ -1,12 +1,12 @@
-"""Modelo de dados dos flashcards.
+"""Flashcard data model.
 
-Desenhado para sobreviver a chegada de outros idiomas: o par de idiomas e
-explicito (`language` / `translation_language`), entao nada aqui presume
-espanhol, mesmo que a primeira versao so traga espanhol.
+Designed to survive the arrival of other languages: the language pair is
+explicit (`language` / `translation_language`), so nothing here assumes Spanish,
+even though the first version ships Spanish only.
 
-`expected_phonemes` guarda o resultado do espeak-ng, nao palpite de LLM. Fica
-vazio por padrao e e preenchido pelo G2P -- assim o dataset continua legivel a
-mao e a referencia fonetica continua deterministica.
+`expected_phonemes` holds the espeak-ng result, not an LLM's guess. It is empty
+by default and filled in by the G2P -- that way the dataset stays readable by
+hand and the phonetic reference stays deterministic.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class Level(int, Enum):
-    """Niveis definidos pela aplicacao. Nao sao CEFR e nao se pretendem equivalentes."""
+    """Levels defined by the app. They are not CEFR and claim no equivalence."""
 
     BEGINNER = 1
     INTERMEDIATE = 2
@@ -33,10 +33,10 @@ class CardType(str, Enum):
     EXPRESSION = "expression"
     VERB = "verb"
     PRONUNCIATION = "pronunciation"
-    """Carta montada em volta de um som dificil especifico."""
+    """Card built around one specific difficult sound."""
 
     INTONATION = "intonation"
-    """Carta em que a melodia da frase e o objetivo."""
+    """Card where the melody of the sentence is the point."""
 
 
 class Category(str, Enum):
@@ -60,7 +60,7 @@ class Category(str, Enum):
 class Flashcard(BaseModel):
     id: str
     text: str
-    """O que o aluno le e pronuncia."""
+    """What the learner reads and pronounces."""
 
     translation: str
     language: str = "es"
@@ -71,13 +71,13 @@ class Flashcard(BaseModel):
 
     grammar_note: str | None = None
     pronunciation_focus: str | None = None
-    """O som ou padrao que esta carta treina, em linguagem de aluno."""
+    """The sound or pattern this card drills, in learner-facing language."""
 
     phoneme_targets: list[str] = Field(default_factory=list)
-    """Fonemas IPA que a carta exercita. Usado para montar series por som."""
+    """IPA phonemes the card exercises. Used to build series by sound."""
 
     expected_phonemes: list[str] = Field(default_factory=list)
-    """Preenchido pelo espeak-ng. Vazio no arquivo-fonte, de proposito."""
+    """Filled in by espeak-ng. Empty in the source file, on purpose."""
 
     example: str | None = None
     example_translation: str | None = None
@@ -89,7 +89,7 @@ class Flashcard(BaseModel):
     @classmethod
     def _not_blank(cls, value: str) -> str:
         if not value or not value.strip():
-            raise ValueError("texto nao pode ser vazio")
+            raise ValueError("text cannot be empty")
         return value.strip()
 
     @field_validator("id")
@@ -97,7 +97,7 @@ class Flashcard(BaseModel):
     def _id_is_slug(cls, value: str) -> str:
         cleaned = value.strip()
         if not cleaned or " " in cleaned:
-            raise ValueError("id deve ser um slug sem espacos")
+            raise ValueError("id must be a slug with no spaces")
         return cleaned
 
     @property
@@ -106,7 +106,7 @@ class Flashcard(BaseModel):
 
 
 class Deck(BaseModel):
-    """Colecao de cartas com um pouco de proveniencia."""
+    """A collection of cards with a little provenance."""
 
     name: str = "default"
     language: str = "es"

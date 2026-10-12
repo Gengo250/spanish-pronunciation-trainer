@@ -1,6 +1,6 @@
-"""API: contrato das rotas, com todos os servicos externos dublados.
+"""API: the route contract, with every external service doubled.
 
-Nenhum teste aqui carrega o Whisper nem toca a ElevenLabs.
+No test here loads Whisper or touches ElevenLabs.
 """
 
 import io
@@ -55,7 +55,7 @@ def client(tmp_path, synth):
 
 
 def wav_bytes(seconds=2.0, sample_rate=16000):
-    """WAV real: o endpoint passa o audio pelo ffmpeg de verdade."""
+    """A real WAV: the endpoint puts the audio through actual ffmpeg."""
     import wave
 
     import numpy as np
@@ -69,7 +69,7 @@ def wav_bytes(seconds=2.0, sample_rate=16000):
     return buffer.getvalue()
 
 
-# --- saude e metadados -----------------------------------------------------
+# --- health and metadata ---------------------------------------------------
 
 def test_health_reports_real_state(client):
     body = client.get("/api/health").json()
@@ -84,7 +84,7 @@ def test_meta_lists_only_categories_present_in_the_deck(client):
     assert len(body["levels"]) == 3
 
 
-# --- cartas ----------------------------------------------------------------
+# --- cards -----------------------------------------------------------------
 
 def test_next_card_respects_the_level_filter(client):
     for _ in range(10):
@@ -110,10 +110,10 @@ def test_unknown_card_is_404(client):
     assert client.get("/api/cards/nope").status_code == 404
 
 
-# --- audio de referencia e cache ------------------------------------------
+# --- reference audio and cache ---------------------------------------------
 
 def test_first_audio_request_synthesizes_and_second_uses_cache(client, synth):
-    """O cache e o que protege a cota da ElevenLabs."""
+    """The cache is what protects the ElevenLabs quota."""
     first = client.get("/api/cards/c2/audio")
     assert first.status_code == 200
     assert first.headers["x-cache"] == "miss"
@@ -179,7 +179,7 @@ def test_silent_recording_is_reported_as_no_speech(client):
 def test_undecodable_audio_is_a_400(client):
     response = client.post(
         "/api/cards/c1/attempt",
-        files={"audio": ("a.webm", b"isto nao e audio", "audio/webm")},
+        files={"audio": ("a.webm", b"this is not audio", "audio/webm")},
     )
     assert response.status_code == 400
 
@@ -233,4 +233,4 @@ def test_attempt_includes_a_deterministic_summary(client):
         "/api/cards/c1/attempt", files={"audio": ("a.wav", wav_bytes(), "audio/wav")}
     ).json()
     assert body["summary"]
-    assert "summary_source" not in body, "sobrou resíduo da remoção do LLM"
+    assert "summary_source" not in body, "leftover residue from removing the LLM"

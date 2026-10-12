@@ -1,9 +1,9 @@
-"""Utilitarios de audio em memoria.
+"""In-memory audio utilities.
 
-Reaproveitados do prototipo `voice-assistant/src/voice_assistant/audio_input.py`.
-A captura de microfone NAO vem junto: no trainer quem grava e o navegador
-(MediaRecorder), entao `Recorder` e `record_until_enter` ficaram para tras e o
-`sounddevice` deixou de ser dependencia.
+Reused from the `voice-assistant/src/voice_assistant/audio_input.py` prototype.
+Microphone capture does NOT come along: in the trainer the browser does the
+recording (MediaRecorder), so `Recorder` and `record_until_enter` were left
+behind and `sounddevice` stopped being a dependency.
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ def duration_seconds(audio: np.ndarray, sample_rate: int = SAMPLE_RATE) -> float
 
 
 def rms_level(audio: np.ndarray) -> float:
-    """Nivel RMS normalizado (0.0 a 1.0). Util para detectar microfone mudo."""
+    """Normalized RMS level (0.0 to 1.0). Useful for detecting a silent mic."""
     if audio.size == 0:
         return 0.0
     if audio.dtype == np.float32:
@@ -31,14 +31,14 @@ def rms_level(audio: np.ndarray) -> float:
 
 
 def to_float32(audio: np.ndarray) -> np.ndarray:
-    """Converte int16 -> float32 em [-1, 1], formato esperado pelos modelos."""
+    """Converts int16 -> float32 in [-1, 1], the format the models expect."""
     if audio.dtype == np.float32:
         return audio.reshape(-1)
     return (audio.astype(np.float32) / 32768.0).reshape(-1)
 
 
 def normalize_for_wav2vec2(audio: np.ndarray) -> np.ndarray:
-    """Media zero e variancia unitaria, como o wav2vec2 espera na entrada."""
+    """Zero mean and unit variance, as wav2vec2 expects on its input."""
     samples = to_float32(audio)
     if samples.size == 0:
         return samples
@@ -51,15 +51,15 @@ def speech_span(
     frame_ms: float = 20.0,
     threshold_ratio: float = 0.08,
 ) -> float:
-    """Segundos entre o inicio e o fim da fala, descontando o silencio das bordas.
+    """Seconds between the start and the end of speech, less the edge silence.
 
-    Serve para medir o audio de referencia do mesmo jeito que medimos o aluno. O
-    ritmo do aluno sai dos timestamps do Whisper, que ja ignoram o silencio; se a
-    referencia fosse medida pela duracao cheia do MP3, as duas grandezas nao
-    seriam comparaveis e toda carta pareceria falada rapido demais.
+    This measures the reference audio the same way we measure the learner. The
+    learner's rhythm comes from Whisper's timestamps, which already ignore the
+    silence; if the reference were measured by the MP3's full duration the two
+    quantities would not be comparable and every card would look spoken too fast.
 
-    O limiar e relativo ao quadro mais forte do proprio audio, entao funciona
-    tanto para a gravacao caseira quanto para o audio de estudio.
+    The threshold is relative to the loudest frame of the audio itself, so it
+    works for a home recording as well as for studio audio.
     """
     samples = to_float32(audio)
     if samples.size == 0:
@@ -80,7 +80,7 @@ def speech_span(
 
 
 def save_wav(audio: np.ndarray, path: str | Path, sample_rate: int = SAMPLE_RATE) -> Path:
-    """Grava o audio em WAV PCM 16 bits (util para depuracao e fixtures de teste)."""
+    """Writes the audio as 16-bit PCM WAV (useful for debugging and test fixtures)."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     if audio.dtype == np.float32:

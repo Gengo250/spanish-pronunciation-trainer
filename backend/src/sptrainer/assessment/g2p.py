@@ -1,15 +1,16 @@
-"""Grafema para fonema em espanhol, via espeak-ng.
+"""Grapheme to phoneme for Spanish, via espeak-ng.
 
-O espanhol tem ortografia quase fonemica, entao o espeak-ng e um gerador de
-referencia confiavel e deterministico -- nada de pedir fonemas para um LLM.
+Spanish spelling is near-phonemic, so espeak-ng is a reliable, deterministic
+reference generator -- no asking an LLM for phonemes.
 
-Duas licoes que vieram da medicao, nao do palpite:
+Two lessons that came from measurement, not from guessing:
 
-1. **G2P e feito palavra por palavra.** Em frase inteira o espeak atravessa a
-   pontuacao e cola palavras vizinhas ("cansado, decidio" -> `kansaðodeθiðjo`).
-   Palavra a palavra tambem e o que permite ancorar cada fonema na palavra certa.
-2. **O unico fonema multi-caractere que o espanhol usa na pratica e `tʃ`** (ch).
-   Conferido contra muchacho, coche, reloj, extra, ciudad e companhia.
+1. **G2P is done word by word.** Given a whole sentence, espeak runs through the
+   punctuation and glues neighbouring words together ("cansado, decidio" ->
+   `kansaðodeθiðjo`). Word by word is also what lets each phoneme be anchored to
+   the right word.
+2. **The only multi-character phoneme Spanish uses in practice is `tʃ`** (ch).
+   Checked against muchacho, coche, reloj, extra, ciudad and company.
 """
 
 from __future__ import annotations
@@ -19,33 +20,33 @@ import subprocess
 from dataclasses import dataclass, field
 from functools import lru_cache
 
-# Marcas que o espeak adiciona e que nao sao fonemas.
+# Marks espeak adds that are not phonemes.
 STRESS_MARKS = "ˈˌ"
 LENGTH_AND_TIES = ".ːˑ‿|"
 PUNCTUATION = "¿?¡!.,;:«»\"'()[]—–…"
 
-# Fonemas de mais de um caractere, em ordem de tentativa.
+# Phonemes longer than one character, in the order they are tried.
 MULTICHAR_PHONES = ("tʃ", "dʒ")
 
 
 class G2PError(RuntimeError):
-    """espeak-ng ausente ou incapaz de transcrever."""
+    """espeak-ng missing or unable to transcribe."""
 
 
 @dataclass
 class WordPhonemes:
     word: str
-    """A palavra como aparece no flashcard, sem pontuacao."""
+    """The word as it appears on the flashcard, without punctuation."""
 
     phonemes: list[str] = field(default_factory=list)
     stressed_index: int | None = None
-    """Indice, dentro de `phonemes`, do nucleo da silaba tonica."""
+    """Index, within `phonemes`, of the nucleus of the stressed syllable."""
 
 
 def espeak_path() -> str:
     path = shutil.which("espeak-ng") or shutil.which("espeak")
     if path is None:
-        raise G2PError("espeak-ng nao encontrado. Instale o pacote `espeak-ng`.")
+        raise G2PError("espeak-ng not found. Install the `espeak-ng` package.")
     return path
 
 
@@ -54,10 +55,10 @@ def strip_punctuation(word: str) -> str:
 
 
 def tokenize_ipa(ipa: str) -> tuple[list[str], int | None]:
-    """Quebra a string do espeak em fonemas e aponta a vogal tonica.
+    """Splits the espeak string into phonemes and points at the stressed vowel.
 
-    Devolve `(fonemas, indice_tonico)`. O acento primario (`ˈ`) marca a silaba
-    seguinte, entao o indice aponta para a primeira vogal depois da marca.
+    Returns `(phonemes, stressed_index)`. Primary stress (`ˈ`) marks the syllable
+    that follows, so the index points at the first vowel after the mark.
     """
     phones: list[str] = []
     stressed_index: int | None = None
@@ -98,8 +99,8 @@ def _espeak_word(word: str, voice: str) -> str:
         check=False,
     )
     if result.returncode != 0:
-        detail = result.stderr.strip() or f"codigo {result.returncode}"
-        raise G2PError(f"espeak-ng falhou em {word!r}: {detail}")
+        detail = result.stderr.strip() or f"exit code {result.returncode}"
+        raise G2PError(f"espeak-ng failed on {word!r}: {detail}")
     return result.stdout.strip()
 
 
@@ -113,7 +114,7 @@ def phonemize_word(word: str, voice: str = "es-419") -> WordPhonemes:
 
 
 def phonemize_text(text: str, voice: str = "es-419") -> list[WordPhonemes]:
-    """Fonemiza palavra por palavra, preservando a ordem do flashcard."""
+    """Phonemizes word by word, preserving the flashcard's order."""
     out: list[WordPhonemes] = []
     for raw in text.split():
         wp = phonemize_word(raw, voice)
@@ -127,5 +128,5 @@ def flatten(words: list[WordPhonemes]) -> list[str]:
 
 
 def phoneme_word_map(words: list[WordPhonemes]) -> list[int]:
-    """Para cada fonema da sequencia achatada, o indice da palavra que o gerou."""
+    """For each phoneme in the flattened sequence, the index of the word it came from."""
     return [i for i, w in enumerate(words) for _ in w.phonemes]

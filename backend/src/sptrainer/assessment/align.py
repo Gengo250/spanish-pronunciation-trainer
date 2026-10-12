@@ -1,11 +1,11 @@
-"""Alinhamento de sequencias de fonemas (Needleman-Wunsch).
+"""Phoneme sequence alignment (Needleman-Wunsch).
 
-Comparar duas listas de fonemas so e util depois de alinha-las: sem isso, uma
-unica insercao no comeco desloca tudo e o diff vira ruido.
+Comparing two phoneme lists is only useful after aligning them: without that, a
+single insertion at the start shifts everything and the diff becomes noise.
 
-A substituicao custa zero quando os dois fonemas sao equivalentes (alofonia,
-variacao regional ou artefato conhecido do modelo), entao sotaque valido nao
-aparece como erro nem no alinhamento nem na taxa.
+Substitution costs zero when the two phonemes are equivalent (allophony,
+regional variation or a known model artifact), so valid accent shows up as an
+error neither in the alignment nor in the rate.
 """
 
 from __future__ import annotations
@@ -18,17 +18,17 @@ from .accents import collapse_geminates, equivalence_reason, equivalent
 
 class Op(str, Enum):
     MATCH = "match"
-    """Identicos."""
+    """Identical."""
 
     EQUIVALENT = "equivalent"
-    """Diferentes na notacao, equivalentes na fala. Nao e erro."""
+    """Different in notation, equivalent in speech. Not an error."""
 
     SUBSTITUTION = "substitution"
     DELETION = "deletion"
-    """Esperado, mas nao pronunciado."""
+    """Expected, but not pronounced."""
 
     INSERTION = "insertion"
-    """Pronunciado, mas nao esperado."""
+    """Pronounced, but not expected."""
 
 
 @dataclass
@@ -39,7 +39,7 @@ class AlignedPair:
     expected_index: int | None = None
     heard_index: int | None = None
     reason: str | None = None
-    """Por que foi considerado equivalente, quando foi."""
+    """Why it was considered equivalent, when it was."""
 
     @property
     def is_error(self) -> bool:
@@ -51,9 +51,9 @@ COST_GAP = 1
 
 
 def align(expected: list[str], heard: list[str]) -> list[AlignedPair]:
-    """Alinhamento global de custo minimo entre as duas sequencias."""
+    """Minimum-cost global alignment between the two sequences."""
     n, m = len(expected), len(heard)
-    # d[i][j] = custo de alinhar expected[:i] com heard[:j]
+    # d[i][j] = cost of aligning expected[:i] with heard[:j]
     d = [[0] * (m + 1) for _ in range(n + 1)]
     for i in range(1, n + 1):
         d[i][0] = i * COST_GAP
@@ -69,8 +69,8 @@ def align(expected: list[str], heard: list[str]) -> list[AlignedPair]:
                 d[i][j - 1] + COST_GAP,
             )
 
-    # Backtrack. Diagonal tem prioridade para nao fatiar substituicoes em
-    # delecao+insercao, que produziria um diff mais dificil de ler.
+    # Backtrack. The diagonal takes priority so substitutions are not split into
+    # deletion+insertion, which would produce a diff that is harder to read.
     pairs: list[AlignedPair] = []
     i, j = n, m
     while i > 0 or j > 0:
@@ -99,10 +99,11 @@ def align(expected: list[str], heard: list[str]) -> list[AlignedPair]:
 
 
 def error_rate(expected: list[str], heard: list[str], *, collapse: bool = True) -> float:
-    """Taxa de erro por fonema (PER), ignorando equivalencias.
+    """Phoneme error rate (PER), ignoring equivalences.
 
-    `0.0` = tudo equivalente ou identico. Normalizada pelo tamanho do esperado,
-    entao insercoes podem levar o valor acima de 1.0 -- quem usa deve limitar.
+    `0.0` = everything equivalent or identical. Normalized by the length of the
+    expected sequence, so insertions can push the value above 1.0 -- callers are
+    expected to clamp it.
     """
     if collapse:
         expected, heard = collapse_geminates(expected), collapse_geminates(heard)
@@ -113,5 +114,5 @@ def error_rate(expected: list[str], heard: list[str], *, collapse: bool = True) 
 
 
 def accuracy(expected: list[str], heard: list[str], *, collapse: bool = True) -> float:
-    """`1 - PER`, limitado a [0, 1]."""
+    """`1 - PER`, clamped to [0, 1]."""
     return max(0.0, min(1.0, 1.0 - error_rate(expected, heard, collapse=collapse)))

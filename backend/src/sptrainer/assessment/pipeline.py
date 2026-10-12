@@ -1,14 +1,15 @@
-"""Orquestracao da avaliacao: audio do aluno -> AssessmentResult.
+"""Assessment orchestration: learner audio -> AssessmentResult.
 
-A ordem importa e esta documentada porque cada etapa pode desligar as seguintes:
+The order matters and is documented here because each stage can switch off the
+ones that follow:
 
-    audio -> porta de silencio -> Whisper -> G2P -> fonemas -> prosodia -> notas
+    audio -> silence gate -> Whisper -> G2P -> phonemes -> prosody -> scores
 
-**A regra que manda neste arquivo:** um finding so e criado quando existe
-evidencia medida que o sustente. Se o modelo acustico estiver desligado, ausente
-ou falhar, `Capability.PHONEME_ANALYSIS` nao entra em `capabilities`, nenhum
-finding de fonema e gerado e a limitacao e declarada em texto. Nada e estimado
-"por aproximacao", e o LLM mais adiante so pode reescrever o que esta aqui.
+**The rule that governs this file:** a finding is only created when measured
+evidence supports it. If the acoustic model is disabled, missing or fails,
+`Capability.PHONEME_ANALYSIS` does not enter `capabilities`, no phoneme finding
+is produced and the limitation is stated in text. Nothing is estimated "by
+approximation", and anything downstream can only restate what is here.
 """
 
 from __future__ import annotations
@@ -34,35 +35,36 @@ from .types import (
 
 logger = logging.getLogger(__name__)
 
-# Abaixo disto nao ha fala suficiente para avaliar coisa alguma.
+# Below this there is not enough speech to assess anything at all.
 MIN_DURATION_S = 0.25
 MIN_RMS = 0.005
 
-# --- Limiares de pronuncia -------------------------------------------------
-# Medidos em 79 fonemas (3 frases), comparando audio de referencia da ElevenLabs
-# com fala de sotaque carregado. Os numeros estao em docs/pronunciation-assessment.md.
+# --- Pronunciation thresholds ----------------------------------------------
+# Measured over 79 phonemes (3 phrases), comparing ElevenLabs reference audio
+# against heavily accented speech. The numbers are in
+# docs/pronunciation-assessment.md.
 #
-# O limiar RELATIVO e o caminho principal: cada carta tem audio de referencia em
-# cache, entao da para perguntar "este som saiu MUITO pior do que na referencia
-# desta mesma frase?". Isso absorve de graca a sinalefa, as aproximantes fracas
-# e as palavras atonas -- justamente os casos em que o limiar absoluto acusava
-# erro em audio comprovadamente correto.
+# The RELATIVE threshold is the main path: every card has cached reference
+# audio, so we can ask "did this sound come out MUCH worse than in the reference
+# for this same sentence?". That absorbs synalepha, weak approximants and
+# unstressed words for free -- precisely the cases where the absolute threshold
+# flagged errors in audio known to be correct.
 #
-#   absoluto -2.0 -> 5/79 falsos positivos na referencia | 45/79 detectados
-#   absoluto -2.5 -> 1/79 falsos positivos               | 42/79 detectados
-#   relativo -2.0 -> 0/79 por construcao                 | 45/79 detectados
+#   absolute -2.0 -> 5/79 false positives on the reference | 45/79 detected
+#   absolute -2.5 -> 1/79 false positives                  | 42/79 detected
+#   relative -2.0 -> 0/79 by construction                  | 45/79 detected
 GOP_RELATIVE_MARGIN = -2.0
 
-# Usado so quando nao ha referencia (carta nunca sintetizada). Mais conservador
-# de proposito: sem base de comparacao, e melhor calar do que acusar errado.
+# Used only when there is no reference (card never synthesized). Deliberately
+# more conservative: with no basis for comparison, better silent than wrong.
 GOP_ABSOLUTE_FLOOR = -2.5
 
-# Acima deste GOP o som saiu claramente bem; entre ele e o limiar de erro, fica
-# "razoavel". Serve so para colorir a fita de fonemas na tela.
+# Above this GOP the sound clearly came out well; between it and the error
+# threshold it is "fair". Only used to colour the phoneme strip on screen.
 GOP_STRONG = -1.0
 
-# Teto de observacoes por tentativa. Nao e estatistica, e didatica: uma lista de
-# quinze sons errados nao ensina ninguem. Mostramos as piores palavras.
+# Cap on observations per attempt. Not statistics, pedagogy: a list of fifteen
+# wrong sounds teaches nobody. We show the worst words.
 MAX_PHONEME_FINDINGS = 3
 
 LIMITATION_NO_PHONEMES = (
@@ -85,7 +87,7 @@ LIMITATION_JOTA = (
 
 
 class AssessmentPipeline:
-    """Junta transcricao, fonemas e prosodia em um unico resultado."""
+    """Joins transcription, phonemes and prosody into a single result."""
 
     def __init__(
         self,
@@ -114,8 +116,9 @@ class AssessmentPipeline:
         samples = to_float32(audio)
         duration = duration_seconds(samples, sample_rate)
 
-        # 1. Porta de silencio. Gravacao muda devolve "nao ouvi", nunca nota zero:
-        #    zero diria ao aluno que ele errou tudo, quando o microfone e que falhou.
+        # 1. Silence gate. A silent recording returns "we heard nothing", never a
+        #    zero: a zero would tell the learner they got everything wrong when it
+        #    was the microphone that failed.
         if duration < MIN_DURATION_S or rms_level(samples) < MIN_RMS:
             return AssessmentResult(
                 expected_text=expected_text,
@@ -134,18 +137,18 @@ class AssessmentPipeline:
                 ],
             )
 
-        # 2. Transcricao.
+        # 2. Transcription.
         transcript = self.transcriber.transcribe(samples, sample_rate=sample_rate)
         capabilities = {Capability.TRANSCRIPT_MATCH}
         limitations: list[str] = []
         findings: list[Finding] = []
 
-        # 3. Fonemas esperados, palavra por palavra (ver g2p.py).
+        # 3. Expected phonemes, word by word (see g2p.py).
         expected_words = g2p.phonemize_text(expected_text, self.espeak_voice)
         expected_phones = g2p.flatten(expected_words)
         phone_to_word = g2p.phoneme_word_map(expected_words)
 
-        # 4. Analise acustica por fonema -- so se realmente disponivel.
+        # 4. Per-phoneme acoustic analysis -- only if genuinely available.
         heard_phones: list[str] | None = None
         gop: list[float] | None = None
         if self.phonemes_enabled and self.recognizer is not None and expected_phones:
@@ -157,15 +160,15 @@ class AssessmentPipeline:
                 capabilities.add(Capability.PHONEME_ANALYSIS)
                 limitations.append(LIMITATION_CALIBRATION)
                 limitations.append(LIMITATION_JOTA)
-            except Exception as exc:  # noqa: BLE001 - ver docstring do modulo
-                # A aula nao pode cair porque o modelo acustico falhou: a
-                # avaliacao degrada para transcricao + prosodia e diz isso.
-                logger.warning("analise de fonemas falhou, seguindo sem ela: %s", exc)
+            except Exception as exc:  # noqa: BLE001 - see the module docstring
+                # The lesson must not go down because the acoustic model failed:
+                # assessment degrades to transcript + prosody and says so.
+                logger.warning("phoneme analysis failed, continuing without it: %s", exc)
                 limitations.append(LIMITATION_NO_PHONEMES)
         else:
             limitations.append(LIMITATION_NO_PHONEMES)
 
-        # 5. Prosodia.
+        # 5. Prosody.
         prosody_result = prosody.analyse(
             samples, transcript.words, sample_rate, reference_rate
         )
@@ -174,7 +177,7 @@ class AssessmentPipeline:
         if reference_rate is None:
             limitations.append(LIMITATION_NO_REFERENCE)
 
-        # 6. Notas.
+        # 6. Scores.
         pause_total = sum(p.duration for p in prosody_result.pauses)
         scores = scoring.compute(
             scoring.ScoreInputs(
@@ -187,7 +190,7 @@ class AssessmentPipeline:
             )
         )
 
-        # 7. Findings, cada um amarrado a sua evidencia.
+        # 7. Findings, each tied to its evidence.
         words = self._word_scores(expected_words, transcript, gop, phone_to_word)
         phoneme_scores = self._phoneme_scores(
             expected_phones, phone_to_word, gop, reference_gop
@@ -215,16 +218,16 @@ class AssessmentPipeline:
         )
 
     # ------------------------------------------------------------------ #
-    # Resultado por fonema
+    # Per-phoneme result
     # ------------------------------------------------------------------ #
 
     def _phoneme_scores(
         self, expected_phones, phone_to_word, gop, reference_gop
     ) -> list[PhonemeScore]:
-        """Monta a fita de fonemas que a interface desenha.
+        """Builds the phoneme strip the interface draws.
 
-        Sem analise acustica todos os sons ficam `unknown` -- a tela mostra a
-        fita apagada em vez de inventar cores.
+        Without acoustic analysis every sound stays `unknown` -- the screen shows
+        the strip greyed out instead of inventing colours.
         """
         usable_reference = reference_gop is not None and len(reference_gop) == len(
             gop or []
@@ -314,14 +317,14 @@ class AssessmentPipeline:
         self, expected_words, expected_phones, gop, phone_to_word, heard_phones,
         reference_gop: list[float] | None = None,
     ) -> list[Finding]:
-        """Sons mal sustentados pelo audio.
+        """Sounds the audio supports poorly.
 
-        Tres filtros, todos necessarios para nao inventar problema:
+        Three filters, all needed so as not to invent a problem:
 
-        1. o fonema tem de ficar abaixo do limiar -- relativo a referencia da
-           propria carta quando ela existe, absoluto (mais severo) quando nao;
-        2. a troca nao pode ser confusao conhecida do reconhecedor (jota);
-        3. so as piores `MAX_PHONEME_FINDINGS` palavras viram texto.
+        1. the phoneme has to fall below the threshold -- relative to the card's
+           own reference when it exists, absolute (stricter) when it does not;
+        2. the swap must not be a known confusion of the recogniser (jota);
+        3. only the worst `MAX_PHONEME_FINDINGS` words become text.
         """
         usable_reference = (
             reference_gop is not None and len(reference_gop) == len(gop)
@@ -342,7 +345,7 @@ class AssessmentPipeline:
                 continue
             by_word.setdefault(word_index, []).append((phone, score))
 
-        # As piores palavras primeiro, para caber no teto didatico.
+        # Worst words first, to fit under the pedagogical cap.
         ranked = sorted(by_word.items(), key=lambda kv: min(s for _, s in kv[1]))
 
         findings: list[Finding] = []

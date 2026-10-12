@@ -1,12 +1,12 @@
-"""Cache local do audio de referencia.
+"""Local cache of the reference audio.
 
-A conta free da ElevenLabs da 10k caracteres/mes (20k nos modelos flash/turbo).
-Um flashcard tem 10-40 caracteres, entao sem cache um aluno repetindo a mesma
-carta queimaria a cota em uma tarde. Com cache, cada combinacao
-(texto, voz, modelo, formato) custa uma unica chamada para sempre.
+The ElevenLabs free account gives 10k characters/month (20k on the flash/turbo
+models). A flashcard is 10-40 characters, so without a cache a learner repeating
+the same card would burn the quota in an afternoon. With a cache, each
+combination (text, voice, model, format) costs a single call, forever.
 
-A reproducao lenta NAO passa por aqui: o navegador baixa o `playbackRate`, o que
-custa zero credito.
+Slow playback does NOT come through here: the browser lowers `playbackRate`,
+which costs zero credits.
 """
 
 from __future__ import annotations
@@ -16,14 +16,14 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-# Suba quando mudar algo que invalide o audio ja gravado.
+# Bump this when something changes that invalidates the audio already stored.
 CACHE_SCHEMA_VERSION = "1"
 
 _EXTENSIONS = {"mp3": ".mp3", "pcm": ".pcm", "ulaw": ".ulaw", "opus": ".opus", "wav": ".wav"}
 
 
 def cache_key(text: str, voice_id: str, model_id: str, output_format: str) -> str:
-    """Chave enderecada por conteudo: mesma entrada, mesmo arquivo, sempre."""
+    """Content-addressed key: same input, same file, always."""
     payload = f"{CACHE_SCHEMA_VERSION}|{text.strip()}|{voice_id}|{model_id}|{output_format}"
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
@@ -37,13 +37,13 @@ class CacheResult:
     path: Path
     audio: bytes
     cached: bool
-    """True quando veio do disco -- ou seja, nao custou credito."""
+    """True when it came from disk -- that is, it cost no credits."""
 
     characters_billed: int = 0
 
 
 class TTSCache:
-    """Guarda o audio sintetizado e os metadados que explicam de onde ele veio."""
+    """Stores the synthesized audio and the metadata explaining where it came from."""
 
     def __init__(self, directory: Path, synthesizer=None) -> None:
         self.directory = Path(directory)
@@ -92,7 +92,7 @@ class TTSCache:
         model_id: str,
         output_format: str,
     ) -> CacheResult:
-        """Devolve o audio, sintetizando apenas quando ele ainda nao existe."""
+        """Returns the audio, synthesizing only when it does not exist yet."""
         text = (text or "").strip()
         cached = self.get(text, voice_id, model_id, output_format)
         if cached is not None:

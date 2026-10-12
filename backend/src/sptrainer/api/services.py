@@ -1,12 +1,12 @@
-"""Montagem das dependencias da aplicacao.
+"""Wiring of the application's dependencies.
 
-Um unico lugar decide o que existe e quando e carregado. O carregamento e
-preguicoso de proposito: nesta maquina o Whisper ocupa varias centenas de MB e o
-modelo de fonemas mais algumas, e a tela de flashcards tem de abrir sem esperar
-nenhum dos dois. Eles so sobem quando o aluno grava pela primeira vez.
+A single place decides what exists and when it gets loaded. Loading is lazy on
+purpose: on this machine Whisper takes several hundred MB and the phoneme model
+a few more, and the flashcard screen has to open without waiting for either.
+They only come up when the learner records for the first time.
 
-Tudo aqui e substituivel em teste: os testes de API injetam dubles e nunca
-tocam em ElevenLabs nem carregam Whisper.
+Everything here is replaceable in tests: the API tests inject doubles and never
+touch ElevenLabs or load Whisper.
 """
 
 from __future__ import annotations
@@ -55,11 +55,11 @@ class Services:
             )
         else:
             logger.warning(
-                "ELEVENLABS_API_KEY ausente: so sera possivel tocar audio ja em cache."
+                "ELEVENLABS_API_KEY missing: only already-cached audio can be played."
             )
         return TTSCache(self.settings.tts_cache_dir, synthesizer=synthesizer)
 
-    # --- avaliacao ---------------------------------------------------------
+    # --- assessment ----------------------------------------------------------
 
     @cached_property
     def transcriber(self) -> Transcriber:
@@ -80,7 +80,7 @@ class Services:
         )
         if not recognizer.available():
             logger.warning(
-                "modelo de fonemas indisponivel: a avaliacao vai rodar sem analise por som."
+                "phoneme model unavailable: assessment will run without per-sound analysis."
             )
             return None
         return recognizer
@@ -97,7 +97,7 @@ class Services:
 
     @cached_property
     def reference(self) -> ReferenceProfiler:
-        """Perfil acustico da referencia -- base relativa da analise por som."""
+        """Acoustic profile of the reference -- the relative basis of per-sound analysis."""
         return ReferenceProfiler(self.tts, self.recognizer, self.settings)
 
     def close(self) -> None:

@@ -1,9 +1,9 @@
-"""Formatos de resposta da API.
+"""API response formats.
 
-Separados dos modelos internos porque o que o navegador precisa nao e o que o
-pipeline produz. O caso mais importante e `AssessmentResponse`: ela carrega
-`capabilities` e `limitations` ate a tela, para que a interface possa dizer o que
-foi medido de fato em vez de exibir uma nota solta.
+Kept apart from the internal models because what the browser needs is not what
+the pipeline produces. The important case is `AssessmentResponse`: it carries
+`capabilities` and `limitations` all the way to the screen, so the interface can
+say what was actually measured instead of showing a bare score.
 """
 
 from __future__ import annotations
@@ -48,8 +48,8 @@ class CardResponse(BaseModel):
     attempts: int = 0
     best_score: float | None = None
     phonemes: list[PhonemeResponse] = []
-    """Pronuncia esperada, som a som. A interface desenha a fita com isto antes
-    mesmo da primeira tentativa."""
+    """Expected pronunciation, sound by sound. The interface draws the strip from
+    this even before the first attempt."""
 
     @classmethod
     def of(cls, card: Flashcard, attempts: int = 0, best: float | None = None,

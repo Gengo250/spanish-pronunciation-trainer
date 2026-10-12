@@ -1,13 +1,14 @@
-"""Ritmo, pausas e entonacao.
+"""Rhythm, pauses and intonation.
 
-Tudo aqui sai de duas fontes medidas: os timestamps por palavra do Whisper e a
-forma de onda. Nenhuma conclusao e inferida de "parece" -- se o sinal nao
-sustenta, a funcao devolve `None` e quem chama nao gera finding.
+Everything here comes from two measured sources: Whisper's per-word timestamps
+and the waveform. No conclusion is inferred from "it seems" -- if the signal
+does not support it, the function returns `None` and the caller produces no
+finding.
 
-Sobre entonacao: a F0 sai de autocorrelacao quadro a quadro, que e confiavel o
-bastante para dizer se o final do enunciado **sobe ou desce** (o que importa para
-perguntas em espanhol), e insuficiente para qualquer afirmacao mais fina. O
-modulo so expoe a direcao, de proposito.
+On intonation: F0 comes from frame-by-frame autocorrelation, which is reliable
+enough to say whether the end of the utterance **rises or falls** (what matters
+for questions in Spanish), and insufficient for anything finer. The module
+exposes only the direction, on purpose.
 """
 
 from __future__ import annotations
@@ -17,17 +18,17 @@ from enum import Enum
 
 import numpy as np
 
-# Silencio entre palavras a partir do qual ja e pausa percebida.
+# Silence between words from which it already reads as a perceived pause.
 PAUSE_THRESHOLD_S = 0.30
 
-# Faixa de F0 considerada voz humana. Fora disso e ruido ou erro de oitava.
+# F0 range considered human voice. Outside it is noise or an octave error.
 F0_MIN_HZ = 70.0
 F0_MAX_HZ = 400.0
 
 FRAME_MS = 40.0
 HOP_MS = 20.0
 
-# Correlacao minima para considerar o quadro sonoro (voiced).
+# Minimum correlation for a frame to count as voiced.
 VOICING_THRESHOLD = 0.35
 
 
@@ -36,7 +37,7 @@ class Contour(str, Enum):
     FALLING = "falling"
     FLAT = "flat"
     UNKNOWN = "unknown"
-    """Audio sem quadros sonoros suficientes para afirmar qualquer coisa."""
+    """Audio without enough voiced frames to claim anything."""
 
 
 @dataclass
@@ -49,30 +50,30 @@ class Pause:
 @dataclass
 class ProsodyResult:
     speech_rate: float | None = None
-    """Palavras por segundo de fala (exclui silencio inicial e final)."""
+    """Words per second of speech (excludes leading and trailing silence)."""
 
     articulation_duration: float = 0.0
     pauses: list[Pause] = field(default_factory=list)
     final_contour: Contour = Contour.UNKNOWN
     f0_median: float | None = None
     reference_rate: float | None = None
-    """Palavras por segundo no audio de referencia da ElevenLabs, quando existe."""
+    """Words per second in the ElevenLabs reference audio, when it exists."""
 
     @property
     def rate_ratio(self) -> float | None:
-        """Velocidade do aluno dividida pela da referencia. 1.0 = igual."""
+        """The learner's speed divided by the reference's. 1.0 = the same."""
         if self.speech_rate and self.reference_rate:
             return self.speech_rate / self.reference_rate
         return None
 
 
-# Uma palavra isolada tem duracao, nao ritmo. Comparar velocidade de fala exige
-# pelo menos duas palavras.
+# A single word has duration, not rhythm. Comparing speech rate needs at least
+# two words.
 MIN_WORDS_FOR_RATE = 2
 
 
 def speech_rate(words, total_duration: float | None = None) -> tuple[float | None, float]:
-    """Palavras por segundo entre o inicio da primeira e o fim da ultima palavra."""
+    """Words per second between the start of the first and the end of the last word."""
     if len(words) < MIN_WORDS_FOR_RATE:
         return None, 0.0
     span = words[-1].end - words[0].start
@@ -82,7 +83,7 @@ def speech_rate(words, total_duration: float | None = None) -> tuple[float | Non
 
 
 def detect_pauses(words, threshold: float = PAUSE_THRESHOLD_S) -> list[Pause]:
-    """Silencios entre palavras acima do limiar."""
+    """Silences between words above the threshold."""
     pauses: list[Pause] = []
     for i in range(len(words) - 1):
         gap = words[i + 1].start - words[i].end
@@ -97,7 +98,7 @@ def f0_contour(
     frame_ms: float = FRAME_MS,
     hop_ms: float = HOP_MS,
 ) -> np.ndarray:
-    """F0 por quadro via autocorrelacao. `nan` nos quadros surdos."""
+    """Per-frame F0 via autocorrelation. `nan` on unvoiced frames."""
     samples = np.asarray(audio, dtype=np.float64).reshape(-1)
     if samples.size == 0:
         return np.empty(0)
@@ -134,11 +135,11 @@ def f0_contour(
 
 
 def final_contour(f0: np.ndarray, tail_fraction: float = 0.30) -> tuple[Contour, float | None]:
-    """Direcao da F0 no trecho final. Devolve `(direcao, mediana_global)`.
+    """Direction of F0 over the final stretch. Returns `(direction, global_median)`.
 
-    Compara a mediana do ultimo `tail_fraction` dos quadros sonoros com a dos
-    anteriores. Precisa de pelo menos 6 quadros sonoros -- abaixo disso devolve
-    UNKNOWN em vez de chutar.
+    Compares the median of the last `tail_fraction` of voiced frames against the
+    earlier ones. Needs at least 6 voiced frames -- below that it returns
+    UNKNOWN instead of guessing.
     """
     voiced = f0[~np.isnan(f0)] if f0.size else np.empty(0)
     if voiced.size < 6:

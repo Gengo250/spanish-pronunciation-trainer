@@ -1,12 +1,12 @@
-"""Progresso do aluno em SQLite.
+"""Learner progress in SQLite.
 
-SQLite porque o app roda local, para uma pessoa: um arquivo, zero servidor, zero
-configuracao. O esquema e deliberadamente raso -- uma linha por tentativa -- e
-toda estatistica e derivada por consulta. Assim nada precisa de migracao quando a
-forma do relatorio mudar.
+SQLite because the app runs locally, for one person: one file, no server, no
+configuration. The schema is deliberately shallow -- one row per attempt -- and
+every statistic is derived by query. That way nothing needs a migration when the
+shape of a report changes.
 
-Guardamos a nota e as metricas, nunca o audio: gravacao de voz e dado sensivel e
-nao ha motivo para o trainer acumular isso.
+We store the score and the metrics, never the audio: voice recordings are
+sensitive data and there is no reason for the trainer to accumulate them.
 """
 
 from __future__ import annotations

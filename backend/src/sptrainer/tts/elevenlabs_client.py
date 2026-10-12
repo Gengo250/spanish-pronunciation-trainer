@@ -1,16 +1,16 @@
-"""Sintese de voz com a ElevenLabs.
+"""Speech synthesis with ElevenLabs.
 
-Reaproveita a sintese e, principalmente, a traducao de erros do prototipo
-(`voice-assistant/src/voice_assistant/speech.py`), que ja mapeia os tropecos
-reais da API free tier. O que ficou de fora foi o `play_bytes`: no trainer quem
-toca o audio e o navegador, entao o backend so devolve bytes.
+Reuses the synthesis and, above all, the error translation from the prototype
+(`voice-assistant/src/voice_assistant/speech.py`), which already maps the real
+stumbles of the free-tier API. What was left out is `play_bytes`: in the trainer
+the browser plays the audio, so the backend only returns bytes.
 """
 
 from __future__ import annotations
 
 from typing import Protocol
 
-# Vozes padrao disponiveis para contas gratuitas (library voices exigem plano pago).
+# Default voices available to free accounts (library voices need a paid plan).
 DEFAULT_VOICES = {
     "Sarah": "EXAVITQu4vr4xnSDxMaL",
     "George": "JBFqnCBsd6RMkjVDRZzb",
@@ -22,20 +22,20 @@ DEFAULT_VOICES = {
 
 
 class SpeechError(RuntimeError):
-    """Falha na sintese do audio."""
+    """Audio synthesis failed."""
 
 
 class Synthesizer(Protocol):
-    """Contrato minimo de um sintetizador, para o cache e os testes."""
+    """Minimal contract of a synthesizer, for the cache and the tests."""
 
     def synthesize(self, text: str) -> bytes: ...
 
 
 def explain(exc: Exception) -> str:
-    """Traduz os erros mais comuns da API para mensagens acionaveis.
+    """Translates the most common API errors into actionable messages.
 
-    Copiado do prototipo: cada ramo corresponde a um erro que ja aconteceu de
-    verdade com esta chave.
+    Copied from the prototype: each branch corresponds to an error that really
+    happened with this key.
     """
     message = str(exc)
     low = message.lower()
@@ -54,7 +54,7 @@ def explain(exc: Exception) -> str:
 
 
 class ElevenLabsSynthesizer:
-    """Sintetiza texto e contabiliza o consumo aproximado de caracteres."""
+    """Synthesizes text and tracks the approximate character usage."""
 
     def __init__(
         self,
@@ -72,7 +72,7 @@ class ElevenLabsSynthesizer:
         self._api_key = api_key
         self._client = None
 
-    def __repr__(self) -> str:  # nunca vazar a chave
+    def __repr__(self) -> str:  # never leak the key
         return (
             f"ElevenLabsSynthesizer(voice_id={self.voice_id!r}, "
             f"model_id={self.model_id!r}, characters_used={self.characters_used})"
@@ -86,7 +86,7 @@ class ElevenLabsSynthesizer:
         return self._client
 
     def synthesize(self, text: str) -> bytes:
-        """Converte texto em bytes de audio. Cada chamada custa creditos."""
+        """Converts text into audio bytes. Every call costs credits."""
         text = (text or "").strip()
         if not text:
             raise SpeechError("Empty text: nothing to synthesise.")

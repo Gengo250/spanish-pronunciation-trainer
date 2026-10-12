@@ -1,4 +1,4 @@
-"""Variacao valida nao pode virar erro -- e par minimo nao pode virar equivalencia."""
+"""Valid variation must not become an error -- and a minimal pair must not become an equivalence."""
 
 import pytest
 
@@ -33,7 +33,7 @@ def test_valid_variation_is_not_an_error(a, b, reason):
     "a,b,why",
     [
         ("n", "m", "cama vs cana"),
-        ("s", "x", "casa vs caja -- nao pode encadear por /h/"),
+        ("s", "x", "casa vs caja -- must not chain through /h/"),
         ("s", "k", "casa vs caca"),
         ("p", "b", "pata vs bata"),
         ("t", "d", "tos vs dos"),
@@ -46,7 +46,7 @@ def test_real_minimal_pairs_stay_distinct(a, b, why):
 
 
 def test_equivalence_is_not_transitive():
-    """s~h e x~h valem, mas s~x nao pode valer -- senao casa == caja."""
+    """s~h and x~h hold, but s~x must not -- otherwise casa == caja."""
     assert equivalent("s", "h") and equivalent("x", "h")
     assert not equivalent("s", "x")
 

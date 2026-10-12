@@ -1,8 +1,8 @@
-"""Aplicacao FastAPI.
+"""FastAPI application.
 
-As rotas sao finas de proposito: validam entrada, chamam um modulo e formatam a
-saida. Toda a logica de verdade esta em `assessment`, `content`, `scheduling` e
-`tts`, que nao sabem que existe HTTP.
+The routes are thin on purpose: they validate input, call a module and format
+the output. All the real logic lives in `assessment`, `content`, `scheduling`
+and `tts`, none of which know HTTP exists.
 """
 
 from __future__ import annotations
@@ -26,15 +26,16 @@ from .services import Services
 
 logger = logging.getLogger(__name__)
 
-# Portas padrao do Vite em dev. Em producao local a interface e servida junto.
+# Vite's default dev ports. In a local production run the interface is served
+# alongside the API.
 DEV_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
 
 def get_services(request: Request) -> Services:
-    """Monta os servicos na primeira requisicao, nao no import.
+    """Builds the services on the first request, not at import time.
 
-    Importar o modulo nao pode abrir banco nem ler baralho: os testes precisam
-    injetar dubles antes de qualquer coisa subir.
+    Importing the module must not open a database or read a deck: the tests need
+    to inject doubles before anything comes up.
     """
     services = getattr(request.app.state, "services", None)
     if services is None:
@@ -46,7 +47,7 @@ def get_services(request: Request) -> Services:
 def create_app(services: Services | None = None) -> FastAPI:
     app = FastAPI(
         title="Spanish Pronunciation Trainer",
-        description="Treino de pronuncia em espanhol com avaliacao acustica local.",
+        description="Spanish pronunciation training with local acoustic assessment.",
         version="0.1.0",
     )
     app.add_middleware(
@@ -65,11 +66,11 @@ def create_app(services: Services | None = None) -> FastAPI:
 
 def _register(app: FastAPI) -> None:
 
-    # --- saude e metadados -------------------------------------------------
+    # --- health and metadata -----------------------------------------------
 
     @app.get("/api/health")
     def health(svc: Services = Depends(get_services)) -> dict:
-        """Diz o que esta realmente disponivel, sem carregar modelo nenhum."""
+        """Says what is actually available, without loading any model."""
         return {
             "status": "ok",
             "deck": svc.deck.name,
@@ -98,7 +99,7 @@ def _register(app: FastAPI) -> None:
             "orders": [o.value for o in Order],
         }
 
-    # --- cartas ------------------------------------------------------------
+    # --- cards ---------------------------------------------------------------
 
     @app.get("/api/cards/next", response_model=CardResponse)
     def next_card(
@@ -136,11 +137,11 @@ def _register(app: FastAPI) -> None:
             voice=svc.settings.espeak_voice,
         )
 
-    # --- audio de referencia ----------------------------------------------
+    # --- reference audio -----------------------------------------------------
 
     @app.get("/api/cards/{card_id}/audio")
     def card_audio(card_id: str, svc: Services = Depends(get_services)):
-        """Audio de referencia. Sintetiza uma vez; depois vem sempre do cache."""
+        """Reference audio. Synthesized once; served from cache ever after."""
         card = _find(svc, card_id)
         settings = svc.settings.elevenlabs
         try:
@@ -161,7 +162,7 @@ def _register(app: FastAPI) -> None:
             },
         )
 
-    # --- tentativa do aluno -----------------------------------------------
+    # --- the learner's attempt -----------------------------------------------
 
     @app.post("/api/cards/{card_id}/attempt", response_model=AssessmentResponse)
     async def attempt(
@@ -176,8 +177,9 @@ def _register(app: FastAPI) -> None:
         except AudioDecodeError as exc:
             raise HTTPException(400, str(exc)) from exc
 
-        # A referencia da propria carta e a base de comparacao: sem ela, a
-        # analise por som cai para um limiar absoluto, bem mais conservador.
+        # The card's own reference is the basis for comparison: without it the
+        # per-sound analysis falls back to an absolute, far more conservative
+        # threshold.
         expected = flatten(phonemize_text(card.text, svc.settings.espeak_voice))
         profile = svc.reference.profile(card.text, expected)
 
@@ -191,7 +193,7 @@ def _register(app: FastAPI) -> None:
         svc.progress.record(card_id, result)
         return AssessmentResponse.of(card_id, result, summary=summarize(result))
 
-    # --- progresso ---------------------------------------------------------
+    # --- progress ------------------------------------------------------------
 
     @app.get("/api/progress/summary", response_model=ProgressSummary)
     def progress_summary(svc: Services = Depends(get_services)):
@@ -207,7 +209,7 @@ def _register(app: FastAPI) -> None:
                 svc: Services = Depends(get_services)) -> list[dict]:
         return svc.progress.history(card_id, limit)
 
-    # --- conteudo ----------------------------------------------------------
+    # --- content -------------------------------------------------------------
 
     @app.get("/api/content/export")
     def export(fmt: str = Query("json", pattern="^(json|csv)$"),
@@ -226,7 +228,7 @@ def _register(app: FastAPI) -> None:
 
     @app.post("/api/content/validate")
     async def validate_upload(file: UploadFile = File(...)) -> dict:
-        """Confere um CSV antes de importar. Nao altera o baralho ativo."""
+        """Checks a CSV before importing. Does not touch the active deck."""
         text = (await file.read()).decode("utf-8", "replace")
         try:
             deck = loads_csv(text)
@@ -247,7 +249,7 @@ def _register(app: FastAPI) -> None:
         }
 
 
-# --- utilidades ------------------------------------------------------------
+# --- utilities -------------------------------------------------------------
 
 def _find(svc: Services, card_id: str):
     for card in svc.deck.cards:

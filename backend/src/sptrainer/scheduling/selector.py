@@ -1,13 +1,13 @@
-"""Escolha da proxima carta.
+"""Choosing the next card.
 
-Separado do conteudo e do progresso de proposito: o seletor recebe as cartas e um
-retrato do historico, e devolve a proxima. Nao le banco, nao grava nada, nao
-chama LLM -- o que o torna trivial de testar e de trocar quando chegar uma
-repeticao espacada de verdade.
+Deliberately separate from content and progress: the selector receives the cards
+and a snapshot of the history, and returns the next one. It reads no database,
+writes nothing and calls no LLM -- which makes it trivial to test and to replace
+when real spaced repetition arrives.
 
-A regra que mais afeta a sensacao de uso e a janela anti-repeticao: sem ela, o
-sorteio uniforme repete a mesma carta dentro de poucas rodadas e o aluno acha
-que o app travou.
+The rule that affects the feel of the app most is the anti-repetition window:
+without it, a uniform draw repeats the same card within a few rounds and the
+learner thinks the app is stuck.
 """
 
 from __future__ import annotations
@@ -23,46 +23,46 @@ class Order(str, Enum):
     RANDOM = "random"
     SEQUENTIAL = "sequential"
     ADAPTIVE = "adaptive"
-    """Sorteio ponderado pelo desempenho: o que saiu mal volta mais."""
+    """Draw weighted by performance: what went badly comes back more often."""
 
 
 class Pool(str, Enum):
     ALL = "all"
     NEW = "new"
-    """Cartas que o aluno ainda nao praticou."""
+    """Cards the learner has not practised yet."""
 
     SEEN = "seen"
-    """Cartas ja praticadas, para revisao."""
+    """Cards already practised, for review."""
 
     STRUGGLING = "struggling"
-    """Cartas ja praticadas cuja melhor nota ficou abaixo do limiar."""
+    """Cards already practised whose best score stayed below the threshold."""
 
 
-# Nota a partir da qual consideramos a carta dominada.
+# Score from which we consider a card mastered.
 MASTERY_SCORE = 80.0
 
-# Quantas cartas recentes ficam bloqueadas antes de poderem voltar.
+# How many recent cards stay blocked before they can come back.
 DEFAULT_RECENT_WINDOW = 10
 
-# --- pesos do modo adaptativo ---------------------------------------------
-# Repetição espaçada de verdade agenda por data. Isto é deliberadamente mais
-# simples: só reponderar o sorteio pela melhor nota de cada carta. Resolve o que
-# importa agora -- o que saiu mal volta mais -- sem introduzir estado temporal
-# que depois teria de ser migrado.
-WEIGHT_NEW = 2.0          # carta inédita: vale mais que uma já dominada
-WEIGHT_MASTERED = 0.3     # dominada: continua aparecendo, mas raramente
-WEIGHT_BASE = 1.0         # piso de uma carta já praticada
-WEIGHT_DEFICIT = 3.0      # quanto a dificuldade soma ao peso
+# --- adaptive mode weights -------------------------------------------------
+# Real spaced repetition schedules by date. This is deliberately simpler: just
+# reweight the draw by each card's best score. It solves what matters now --
+# what went badly comes back more often -- without introducing temporal state
+# that would later have to be migrated.
+WEIGHT_NEW = 2.0          # unseen card: worth more than an already mastered one
+WEIGHT_MASTERED = 0.3     # mastered: still shows up, but rarely
+WEIGHT_BASE = 1.0         # floor for a card already practised
+WEIGHT_DEFICIT = 3.0      # how much difficulty adds to the weight
 
 
 @dataclass
 class StudyState:
-    """Retrato do historico do aluno, injetado por quem chama."""
+    """Snapshot of the learner's history, injected by the caller."""
 
     attempts: dict[str, int] = field(default_factory=dict)
     best_score: dict[str, float] = field(default_factory=dict)
     recent: list[str] = field(default_factory=list)
-    """Ids mostrados recentemente, do mais antigo para o mais novo."""
+    """Ids shown recently, oldest first."""
 
     def seen(self, card_id: str) -> bool:
         return self.attempts.get(card_id, 0) > 0
@@ -79,7 +79,7 @@ class SelectionFilters:
 
 
 def matches(card: Flashcard, filters: SelectionFilters, state: StudyState) -> bool:
-    # Sequencia de guardas de proposito: cada filtro fica legivel e isolado.
+    # A sequence of guards on purpose: each filter stays readable and isolated.
     if filters.level is not None and card.level != filters.level:
         return False
     if filters.category is not None and card.category != filters.category:
@@ -92,7 +92,7 @@ def matches(card: Flashcard, filters: SelectionFilters, state: StudyState) -> bo
         return False
     if filters.pool is Pool.SEEN and not state.seen(card.id):
         return False
-    if filters.pool is Pool.STRUGGLING and (  # noqa: SIM103 - guarda, nao expressao
+    if filters.pool is Pool.STRUGGLING and (  # noqa: SIM103 - a guard, not an expression
         not state.seen(card.id) or state.best_score.get(card.id, 0.0) >= MASTERY_SCORE
     ):
         return False
@@ -106,11 +106,11 @@ def candidates(
 
 
 def card_weight(card_id: str, state: StudyState) -> float:
-    """Peso de uma carta no sorteio adaptativo.
+    """Weight of a card in the adaptive draw.
 
-    Nova = 2.0 · dominada = 0.3 · praticada = 1.0 + 3.0 x (quanto falta para
-    dominar). Uma carta com nota 0 pesa 4.0, ou seja, aparece cerca de treze
-    vezes mais que uma já dominada.
+    New = 2.0 · mastered = 0.3 · practised = 1.0 + 3.0 x (how far from mastery).
+    A card scoring 0 weighs 4.0, that is, it shows up about thirteen times more
+    often than an already mastered one.
     """
     if not state.seen(card_id):
         return WEIGHT_NEW
@@ -122,7 +122,7 @@ def card_weight(card_id: str, state: StudyState) -> float:
 
 
 class CardSelector:
-    """Devolve a proxima carta respeitando filtros, ordem e anti-repeticao."""
+    """Returns the next card, honouring filters, order and anti-repetition."""
 
     def __init__(
         self,
@@ -152,7 +152,7 @@ class CardSelector:
             self._cursor += 1
             return card
 
-        # Evita repetir o que acabou de sair -- mas so enquanto sobrar escolha.
+        # Avoids repeating what just came up -- but only while there is choice left.
         blocked = set(state.recent[-self.recent_window :])
         choices = [c for c in pool if c.id not in blocked] or pool
 
@@ -167,7 +167,7 @@ class CardSelector:
         filters: SelectionFilters | None = None,
         state: StudyState | None = None,
     ) -> list[Flashcard]:
-        """Monta uma sessao sem repetir carta dentro dela."""
+        """Builds a session with no card repeated inside it."""
         filters = filters or SelectionFilters()
         state = state or StudyState()
         pool = candidates(self.cards, filters, state)

@@ -32,7 +32,7 @@ def card(**kw):
 
 def test_seed_deck_covers_all_three_levels(deck):
     for level in Level:
-        assert len(deck.by_level(level)) >= 10, f"nivel {level.value} com poucas cartas"
+        assert len(deck.by_level(level)) >= 10, f"level {level.value} has too few cards"
 
 
 def test_seed_deck_is_diverse(deck):
@@ -78,19 +78,19 @@ def test_csv_keeps_accents_and_question_marks(tmp_path):
 
 
 def test_csv_without_required_columns_is_rejected():
-    with pytest.raises(ContentError, match="colunas obrigatorias"):
+    with pytest.raises(ContentError, match="required columns"):
         loads_csv("id,text\nx,Hola\n")
 
 
 def test_missing_file_is_reported():
-    with pytest.raises(ContentError, match="nao encontrado"):
+    with pytest.raises(ContentError, match="not found"):
         load_json("/nonexistent/deck.json")
 
 
 def test_invalid_json_is_reported(tmp_path):
     bad = tmp_path / "bad.json"
     bad.write_text("{not json", encoding="utf-8")
-    with pytest.raises(ContentError, match="JSON invalido"):
+    with pytest.raises(ContentError, match="invalid JSON"):
         load_json(bad)
 
 
@@ -102,15 +102,15 @@ def test_duplicate_ids_are_errors():
 
 
 def test_foreign_characters_are_errors():
-    """Lixo de importacao -- foi exatamente assim que um '社' entrou no dataset."""
+    """Import junk -- this is exactly how a '社' got into the dataset."""
     deck = Deck(cards=[card(text="La desigualdad社 no se resuelve")])
     errors = validate_deck(deck).errors
-    assert any("fora do alfabeto" in i.message for i in errors)
+    assert any("outside the Spanish alphabet" in i.message for i in errors)
 
 
 def test_unclosed_spanish_question_is_an_error():
     deck = Deck(cards=[card(text="¿Cómo estás", card_type=CardType.QUESTION)])
-    assert any("nao fecha" in i.message for i in validate_deck(deck).errors)
+    assert any("does not close" in i.message for i in validate_deck(deck).errors)
 
 
 def test_cognate_translation_is_a_warning_not_an_error():
@@ -118,7 +118,7 @@ def test_cognate_translation_is_a_warning_not_an_error():
     deck = Deck(cards=[card(text="azul", translation="azul", category=Category.COLORS)])
     report = validate_deck(deck)
     assert report.ok
-    assert any("cognato" in i.message for i in report.warnings)
+    assert any("cognate" in i.message for i in report.warnings)
 
 
 def test_phoneme_target_check_accepts_allophones():

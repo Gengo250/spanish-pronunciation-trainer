@@ -1,12 +1,12 @@
-"""Contrato da avaliacao de pronuncia.
+"""The pronunciation assessment contract.
 
-A regra que organiza este modulo: **toda afirmacao carrega a evidencia que a
-sustenta**. Se o modelo acustico de fonemas estiver desligado, ausente ou falhar,
-as conclusoes de nivel fonetico simplesmente nao existem no resultado -- elas nao
-sao adivinhadas, nem preenchidas por estimativa.
+The rule that organizes this module: **every claim carries the evidence that
+supports it**. If the acoustic phoneme model is disabled, missing or fails,
+phonetic-level conclusions simply do not exist in the result -- they are not
+guessed, nor filled in by estimate.
 
-`AssessmentResult.capabilities` diz o que esta rodando de fato, e `limitations`
-diz, em portugues, o que esta analise nao consegue afirmar.
+`AssessmentResult.capabilities` says what is actually running, and `limitations`
+says, in plain language, what this analysis cannot claim.
 """
 
 from __future__ import annotations
@@ -16,16 +16,16 @@ from enum import Enum
 
 
 class Evidence(str, Enum):
-    """De onde veio a conclusao. Sem isso, nenhum finding entra no resultado."""
+    """Where the conclusion came from. Without it, no finding enters the result."""
 
     TRANSCRIPT = "transcript"
-    """Comparacao do texto reconhecido pelo Whisper com o texto esperado."""
+    """Comparison of the text Whisper recognized against the expected text."""
 
     PHONEME_ACOUSTIC = "phoneme_acoustic"
-    """Posteriors por fonema do wav2vec2 alinhados a sequencia esperada (GOP)."""
+    """wav2vec2 per-phoneme posteriors aligned to the expected sequence (GOP)."""
 
     PROSODY = "prosody"
-    """Duracao, ritmo e pausas medidos nos timestamps por palavra."""
+    """Duration, rhythm and pauses measured on the per-word timestamps."""
 
 
 class Capability(str, Enum):
@@ -42,7 +42,7 @@ class Severity(str, Enum):
 
 @dataclass
 class Finding:
-    """Uma observacao isolada e rastreavel sobre a fala do aluno."""
+    """A single, traceable observation about the learner's speech."""
 
     kind: str
     message: str
@@ -53,16 +53,16 @@ class Finding:
     expected: str | None = None
     heard: str | None = None
     score: float | None = None
-    """Valor bruto que gerou a conclusao (GOP, probabilidade, segundos...)."""
+    """Raw value behind the conclusion (GOP, probability, seconds...)."""
 
 
 @dataclass
 class PhonemeScore:
-    """Um som esperado e o quanto o audio o sustentou.
+    """An expected sound and how well the audio supported it.
 
-    E o que a interface desenha na fita de fonemas. `status` ja vem resolvido
-    aqui para que a tela nao precise reimplementar os limiares -- e para que
-    `unknown` continue sendo `unknown`, em vez de virar "ruim" por omissao.
+    This is what the interface draws in the phoneme strip. `status` is resolved
+    here so the screen does not have to reimplement the thresholds -- and so that
+    `unknown` stays `unknown`, instead of becoming "bad" by omission.
     """
 
     index: int
@@ -87,7 +87,7 @@ class WordScore:
 
 @dataclass
 class Scores:
-    """Numeros, todos reproduziveis. As formulas estao em scoring.py e no README."""
+    """Numbers, all reproducible. The formulas are in scoring.py and the README."""
 
     word_accuracy: float
     phoneme_accuracy: float | None = None

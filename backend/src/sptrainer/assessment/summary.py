@@ -1,9 +1,9 @@
-"""Resumo em uma frase do resultado da tentativa.
+"""One-sentence summary of the attempt's result.
 
-Vive aqui, e não num módulo de LLM, porque é isto que o aluno lê de verdade: um
-texto determinístico, instantâneo e sempre fiel ao que foi medido. Não há versão
-"inteligente" disto — um modelo de linguagem só poderia reescrever os mesmos
-fatos, mais devagar e com risco de inventar.
+It lives here, and not in an LLM module, because this is what the learner
+actually reads: deterministic text, instant and always faithful to what was
+measured. There is no "smart" version of this — a language model could only
+restate the same facts, more slowly and with a risk of inventing.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from .types import AssessmentResult, Evidence
 
 
 def summarize(result: AssessmentResult) -> str:
-    """Uma frase sobre a tentativa, montada a partir das observações medidas."""
+    """One sentence about the attempt, assembled from the measured observations."""
     if result.no_speech_detected:
         return "We did not hear anything. Check your microphone and record again."
 

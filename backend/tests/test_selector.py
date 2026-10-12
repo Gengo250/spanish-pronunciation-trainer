@@ -1,4 +1,4 @@
-"""Selecao de cartas: filtros, ordem, anti-repeticao."""
+"""Card selection: filters, order, anti-repetition."""
 
 import random
 from collections import Counter
@@ -69,7 +69,7 @@ def test_sequential_order_walks_the_deck(cards):
 
 
 def test_random_order_avoids_recent_cards(cards):
-    """Sem janela anti-repeticao o sorteio devolve a mesma carta logo em seguida."""
+    """Without an anti-repetition window the draw returns the same card right away."""
     sel = CardSelector(cards, recent_window=5, rng=random.Random(7))
     state = StudyState(recent=["c0", "c1", "c2", "c3", "c4"])
     f = SelectionFilters(level=Level.BEGINNER)
@@ -78,7 +78,7 @@ def test_random_order_avoids_recent_cards(cards):
 
 
 def test_anti_repetition_relaxes_when_nothing_else_is_left(cards):
-    """Com uma unica carta elegivel, repetir e melhor que devolver nada."""
+    """With a single eligible card, repeating beats returning nothing."""
     sel = CardSelector(cards, recent_window=10, rng=random.Random(1))
     state = StudyState(recent=[f"c{i}" for i in range(10)])
     assert sel.next_card(SelectionFilters(level=Level.BEGINNER), state) is not None
@@ -88,7 +88,7 @@ def test_random_selection_covers_the_whole_pool(cards):
     sel = CardSelector(cards, recent_window=0, rng=random.Random(3))
     f = SelectionFilters(level=Level.BEGINNER)
     counts = Counter(sel.next_card(f).id for _ in range(400))
-    assert len(counts) == 10, "o sorteio deixou cartas de fora"
+    assert len(counts) == 10, "the draw left cards out"
 
 
 def test_no_match_returns_none(cards):
@@ -115,8 +115,8 @@ def test_selector_works_on_the_real_deck():
 def test_weight_ranks_difficulty_above_mastery():
     """Ordem pretendida: ruim > nova > média > dominada.
 
-    A carta inédita fica acima da "média" de propósito: conteúdo novo vale mais
-    que insistir numa carta que já sai razoável. O que sai mal de verdade
+    The unseen card sits above the "average" on purpose: new material is worth
+    more than drilling a card that already comes out reasonably. What genuinely
     continua acima de tudo.
     """
     state = StudyState(
@@ -131,13 +131,13 @@ def test_weight_ranks_difficulty_above_mastery():
 
 
 def test_mastered_cards_still_appear_sometimes():
-    """Peso baixo, não zero: revisão esporádica continua existindo."""
+    """Low weight, not zero: occasional review still happens."""
     state = StudyState(attempts={"c": 1}, best_score={"c": 100.0})
     assert card_weight("c", state) > 0
 
 
 def test_adaptive_order_favours_the_weak_card(cards):
-    """Com uma carta ruim e uma dominada, a ruim tem de sair bem mais."""
+    """With one bad card and one mastered, the bad one must come up far more."""
     state = StudyState(
         attempts={"c0": 1, "c1": 1},
         best_score={"c0": 5.0, "c1": 95.0},

@@ -1,7 +1,7 @@
 """Resumo determinístico da tentativa.
 
-Substituiu o resumo gerado por LLM: mesmos fatos, instantâneo, sem risco de
-inventar observação que não foi medida.
+It replaced the LLM-generated summary: same facts, instant, with no risk of
+inventing an observation that was never measured.
 """
 
 from sptrainer.assessment.summary import summarize
@@ -53,7 +53,7 @@ def test_silence_asks_to_record_again():
 
 
 def test_summary_only_names_words_that_have_findings():
-    """Nunca cita palavra sem observação — era o risco que o LLM trazia."""
+    """Never names a word without an observation — that was the risk the LLM brought."""
     finding = Finding(kind="weak_phoneme", message="…",
                       evidence=Evidence.PHONEME_ACOUSTIC, severity=Severity.MINOR,
                       word="gustaría", expected="ɾ")

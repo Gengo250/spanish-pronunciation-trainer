@@ -1,12 +1,12 @@
-"""Formulas de pontuacao. Todas puras, deterministas e documentadas.
+"""Scoring formulas. All pure, deterministic and documented.
 
-A regra do projeto: **nenhum numero sem formula reproduzivel**. Cada funcao aqui
-e pura (entra lista, sai float), testada com fixtures, e a conta aparece tanto na
-docstring quanto no README.
+The project rule: **no number without a reproducible formula**. Every function
+here is pure (list in, float out), tested with fixtures, and the arithmetic
+appears both in the docstring and in the README.
 
-O que estas notas NAO sao: certificacao de proficiencia. Nao ha mapeamento para
-CEFR nem pretensao de equivalencia com exame oficial. Sao um instrumento de
-estudo -- servem para o aluno ver progresso entre tentativas da mesma carta.
+What these scores are NOT: a proficiency certification. There is no mapping to
+CEFR and no claim of equivalence with any official exam. They are a study
+instrument -- they let the learner see progress across attempts at the same card.
 """
 
 from __future__ import annotations
@@ -17,32 +17,33 @@ from dataclasses import dataclass
 from .align import align, error_rate
 from .types import Scores
 
-# Pesos da nota de pratica. Somam 1.0 quando os tres componentes existem;
-# quando um falta, os demais sao renormalizados (ver `practice_score`).
+# Weights of the practice score. They sum to 1.0 when all three components
+# exist; when one is missing the rest are renormalized (see `practice_score`).
 WEIGHT_WORD = 0.50
 WEIGHT_PHONEME = 0.35
 WEIGHT_FLUENCY = 0.15
 
-# Faixa de velocidade aceita, como razao da referencia da ElevenLabs.
+# Accepted speed range, as a ratio of the ElevenLabs reference.
 RATE_COMFORT_LOW = 0.75
 RATE_COMFORT_HIGH = 1.30
 
-# Pausa normal entre palavras; acima disso comeca a pesar na fluencia.
+# Normal pause between words; beyond this it starts weighing on fluency.
 PAUSE_BUDGET_S = 0.60
 
-# "ñ" e letra, nao "n" com acento. Precisa sobreviver a remocao de diacriticos.
+# "ñ" is a letter, not an accented "n". It has to survive diacritic stripping.
 _ENYE_SENTINEL = ""
 
 
 def normalize_word(word: str) -> str:
-    """Forma canonica para comparar *identidade de palavra*.
+    """Canonical form for comparing *word identity*.
 
-    Minusculas, sem pontuacao e sem acento. Acento sai porque o Whisper oscila
-    entre "gustaria" e "gustaría" para a mesma fala, e isso nao e erro de
-    pronuncia. O "ñ" e preservado: "ano" e "año" sao palavras diferentes.
+    Lowercase, no punctuation, no accents. Accents go because Whisper wavers
+    between "gustaria" and "gustaría" for the same speech, and that is not a
+    pronunciation error. "ñ" is preserved: "ano" and "año" are different words.
 
-    Atencao: isto serve so para casar palavras. O G2P sempre recebe o texto
-    original, com acento, porque ali o acento define a silaba tonica.
+    Note: this is only for matching words. G2P always receives the original
+    text, accents included, because there the accent defines the stressed
+    syllable.
     """
     protected = word.replace("ñ", _ENYE_SENTINEL).replace("Ñ", _ENYE_SENTINEL)
     decomposed = unicodedata.normalize("NFD", protected)
@@ -56,10 +57,10 @@ def tokenize_words(text: str) -> list[str]:
 
 
 def word_accuracy(expected: str, recognized: str) -> float:
-    """`1 - WER`, limitado a [0, 1].
+    """`1 - WER`, clamped to [0, 1].
 
-    WER = (substituicoes + delecoes + insercoes) / palavras_esperadas,
-    calculado por alinhamento de Levenshtein sobre palavras normalizadas.
+    WER = (substitutions + deletions + insertions) / expected_words,
+    computed by Levenshtein alignment over normalized words.
     """
     exp, rec = tokenize_words(expected), tokenize_words(recognized)
     if not exp:
@@ -69,21 +70,21 @@ def word_accuracy(expected: str, recognized: str) -> float:
 
 
 def phoneme_accuracy(expected: list[str], heard: list[str]) -> float:
-    """`1 - PER`, depois de colapsar equivalencias de sotaque e geminadas."""
+    """`1 - PER`, after collapsing accent equivalences and geminates."""
     return max(0.0, min(1.0, 1.0 - error_rate(expected, heard)))
 
 
 def fluency(rate_ratio: float | None, pause_total: float) -> float | None:
-    """Nota de fluencia a partir de velocidade e tempo parado.
+    """Fluency score from speed and time spent paused.
 
-    Dois componentes multiplicados:
+    Two components multiplied together:
 
-    - ritmo: 1.0 dentro da faixa confortavel (0.75x a 1.30x da referencia),
-      caindo linearmente fora dela, com piso em 0.
-    - pausas: `1 - max(0, total_pausado - 0.60s) / 3s`, com piso em 0.
+    - rhythm: 1.0 inside the comfortable range (0.75x to 1.30x of the
+      reference), falling off linearly outside it, floored at 0.
+    - pauses: `1 - max(0, total_paused - 0.60s) / 3s`, floored at 0.
 
-    Devolve `None` quando nao ha referencia de velocidade -- sem ela a conta
-    nao teria significado, e inventar um valor seria pior que omitir.
+    Returns `None` when there is no speed reference -- without one the figure
+    would be meaningless, and inventing a value would be worse than omitting it.
     """
     if rate_ratio is None:
         return None
@@ -101,11 +102,12 @@ def fluency(rate_ratio: float | None, pause_total: float) -> float | None:
 def practice_score(
     word: float, phoneme: float | None = None, fluency_score: float | None = None
 ) -> float:
-    """Nota de pratica 0-100: media ponderada dos componentes disponiveis.
+    """Practice score 0-100: weighted mean of the available components.
 
-    Pesos: palavra 0.50, fonema 0.35, fluencia 0.15. Componentes ausentes sao
-    excluidos e os pesos restantes renormalizados -- uma analise sem fonemas
-    continua produzindo nota, so que baseada no que foi realmente medido.
+    Weights: word 0.50, phoneme 0.35, fluency 0.15. Missing components are
+    excluded and the remaining weights renormalized -- an analysis without
+    phonemes still produces a score, just one based on what was actually
+    measured.
     """
     parts = [(WEIGHT_WORD, word)]
     if phoneme is not None:

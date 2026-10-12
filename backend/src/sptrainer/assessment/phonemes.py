@@ -1,26 +1,26 @@
-"""Reconhecimento acustico de fonemas (wav2vec2 CTC, int8 ONNX).
+"""Acoustic phoneme recognition (wav2vec2 CTC, int8 ONNX).
 
-Este e o modulo que permite falar sobre *sons*, e nao apenas sobre palavras
-reconhecidas. Ele faz duas coisas distintas com o mesmo conjunto de logits:
+This is the module that lets us talk about *sounds*, and not only about
+recognized words. It does two distinct things with the same set of logits:
 
-1. **Decodificacao restrita** -- qual sequencia de fonemas o audio contem.
-   O modelo e multilingue (392 simbolos, varias linguas). Em decodificacao livre
-   ele literalmente interpreta espanhol como mandarim: no spike M0 saiu
-   `s. u5 ɑ5 onɡ5 ɕ ts.` para "Juan trajo jamon". Restringir os logits ao
-   inventario do espanhol antes do argmax derrubou o PER de 85.7% para 46.4% no
-   mesmo audio. Por isso a mascara nao e um detalhe de otimizacao: sem ela o
-   modulo nao funciona.
+1. **Restricted decoding** -- which phoneme sequence the audio contains.
+   The model is multilingual (392 symbols, several languages). Decoding freely,
+   it literally reads Spanish as Mandarin: the M0 spike produced
+   `s. u5 ɑ5 onɡ5 ɕ ts.` for "Juan trajo jamon". Restricting the logits to the
+   Spanish inventory before the argmax dropped the PER from 85.7% to 46.4% on
+   the same audio. That is why the mask is not an optimization detail: without
+   it the module does not work.
 
-2. **GOP (Goodness of Pronunciation)** -- quao bem o audio sustenta cada fonema
-   *esperado*. Aqui nao se pergunta "que sons sao estes?", e sim "o audio apoia
-   /x/ neste trecho?". Alinha-se a sequencia esperada por CTC forced alignment e
-   le-se o log-posterior medio de cada fonema. E a medida mais robusta das duas:
-   no spike ela separou fala correta de fala com sotaque carregado de forma
-   consistente (-0.2 vs -5.1), enquanto o PER livre errava o sinal em 2 de 5
-   frases.
+2. **GOP (Goodness of Pronunciation)** -- how well the audio supports each
+   *expected* phoneme. Here the question is not "what sounds are these?" but
+   "does the audio back /x/ in this stretch?". The expected sequence is aligned
+   by CTC forced alignment and the mean log-posterior of each phoneme is read
+   off. It is the more robust of the two measures: in the spike it separated
+   correct speech from heavily accented speech consistently (-0.2 vs -5.1),
+   while free PER got the sign wrong in 2 of 5 phrases.
 
-Tudo roda em ONNX Runtime na CPU: ~157 ms para um trecho de 2-3 s nesta maquina
-(RTF ~0.08). Nao ha PyTorch em lugar nenhum do projeto.
+Everything runs on ONNX Runtime on the CPU: ~157 ms for a 2-3 s utterance on
+this machine (RTF ~0.08). There is no PyTorch anywhere in the project.
 """
 
 from __future__ import annotations
@@ -34,26 +34,26 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-# Inventario fonetico do espanhol, levantado com espeak-ng sobre as duas
-# variantes (es, es-419). Fora daqui o modelo comeca a alucinar outras linguas.
+# Spanish phonetic inventory, collected with espeak-ng across both variants
+# (es, es-419). Outside it the model starts hallucinating other languages.
 SPANISH_PHONES: frozenset[str] = frozenset({
-    # vogais
+    # vowels
     "a", "e", "i", "o", "u", "ɛ", "ʊ",
-    # semivogais
+    # semivowels
     "j", "w",
-    # oclusivas
+    # stops
     "p", "b", "t", "d", "k", "ɡ",
-    # aproximantes (alofones de b, d, ɡ entre vogais)
+    # approximants (allophones of b, d, ɡ between vowels)
     "β", "ð", "ɣ",
-    # fricativas  (θ = distincion peninsular; h = aspiracao/jota caribenha)
+    # fricatives (θ = peninsular distincion; h = aspiration/Caribbean jota)
     "f", "s", "θ", "x", "h",
-    # africada
+    # affricate
     "tʃ",
-    # nasais
+    # nasals
     "m", "n", "ɲ", "ŋ",
-    # laterais e palatal
+    # laterals and palatal
     "l", "ʎ", "ʝ",
-    # tap e vibrante
+    # tap and trill
     "ɾ", "r",
 })
 
@@ -61,25 +61,25 @@ NEG_INF = -1e30
 
 
 class PhonemeModelUnavailable(RuntimeError):
-    """O modelo acustico nao pode ser carregado ou usado."""
+    """The acoustic model could not be loaded or used."""
 
 
 @dataclass
 class PhonemeRecognition:
-    """Saida do reconhecedor para um trecho de audio."""
+    """Recognizer output for one stretch of audio."""
 
     phonemes: list[str] = field(default_factory=list)
-    """Decodificacao restrita ao inventario do espanhol."""
+    """Decoding restricted to the Spanish inventory."""
 
     gop: list[float] = field(default_factory=list)
-    """Log-posterior medio por fonema *esperado*, na ordem em que foram pedidos."""
+    """Mean log-posterior per *expected* phoneme, in the order requested."""
 
     frames: int = 0
     inference_ms: float = 0.0
 
 
 class PhonemeRecognizer:
-    """Carrega o modelo sob demanda e devolve fonemas + GOP."""
+    """Loads the model on demand and returns phonemes + GOP."""
 
     def __init__(
         self,
@@ -101,17 +101,17 @@ class PhonemeRecognizer:
         self._mask: np.ndarray | None = None
 
     # ------------------------------------------------------------------ #
-    # Carregamento
+    # Loading
     # ------------------------------------------------------------------ #
 
     def available(self) -> bool:
-        """True quando da para usar o modelo. Nunca levanta excecao."""
+        """True when the model is usable. Never raises."""
         try:
             self.load()
             return True
-        except Exception as exc:  # noqa: BLE001 - degradar e o comportamento desejado
-            # Qualquer falha (rede, disco, ONNX) significa 'siga sem fonemas'.
-            logger.warning("modelo de fonemas indisponivel: %s", exc)
+        except Exception as exc:  # noqa: BLE001 - degrading is the intended behaviour
+            # Any failure (network, disk, ONNX) means 'carry on without phonemes'.
+            logger.warning("phoneme model unavailable: %s", exc)
             return False
 
     def load(self):
@@ -122,14 +122,14 @@ class PhonemeRecognizer:
             from huggingface_hub import hf_hub_download
         except ImportError as exc:  # pragma: no cover
             raise PhonemeModelUnavailable(
-                "onnxruntime/huggingface-hub nao instalados. Rode: uv sync"
+                "onnxruntime/huggingface-hub are not installed. Run: uv sync"
             ) from exc
         try:
             model_path = hf_hub_download(self.repo_id, self.filename)
             vocab_path = hf_hub_download(self.vocab_repo_id, self.vocab_filename)
         except Exception as exc:
             raise PhonemeModelUnavailable(
-                f"nao foi possivel baixar o modelo de fonemas ({self.repo_id}): {exc}"
+                f"could not download the phoneme model ({self.repo_id}): {exc}"
             ) from exc
 
         self._vocab = json.loads(Path(vocab_path).read_text(encoding="utf-8"))
@@ -157,17 +157,17 @@ class PhonemeRecognizer:
         return self._vocab
 
     # ------------------------------------------------------------------ #
-    # Inferencia
+    # Inference
     # ------------------------------------------------------------------ #
 
     def log_posteriors(self, audio: np.ndarray) -> tuple[np.ndarray, float]:
-        """Roda o modelo e devolve `(log_softmax[T, V], tempo_ms)`."""
+        """Runs the model and returns `(log_softmax[T, V], elapsed_ms)`."""
         import time
 
         session = self.load()
         samples = np.asarray(audio, dtype=np.float32).reshape(-1)
         if samples.size == 0:
-            raise PhonemeModelUnavailable("audio vazio.")
+            raise PhonemeModelUnavailable("empty audio.")
         started = time.perf_counter()
         logits = session.run(["logits"], {"input_values": samples[None, :]})[0][0]
         elapsed_ms = (time.perf_counter() - started) * 1000.0
@@ -176,7 +176,7 @@ class PhonemeRecognizer:
         return log_probs.astype(np.float32), elapsed_ms
 
     def decode(self, log_probs: np.ndarray) -> list[str]:
-        """CTC greedy, restrito ao inventario do espanhol."""
+        """CTC greedy, restricted to the Spanish inventory."""
         assert self._mask is not None and self._id2tok is not None
         ids = (log_probs + self._mask).argmax(axis=-1)
         out: list[str] = []
@@ -192,11 +192,11 @@ class PhonemeRecognizer:
     def forced_align_gop(
         self, log_probs: np.ndarray, expected: list[str]
     ) -> list[float]:
-        """Alinha a sequencia esperada por CTC e devolve o GOP medio por fonema.
+        """Aligns the expected sequence by CTC and returns the mean GOP per phoneme.
 
-        Forced alignment classico sobre a sequencia estendida com blanks. O valor
-        de cada fonema e a media dos log-posteriors dos frames que o alinhamento
-        atribuiu a ele; fonemas sem frame recebem `NEG_INF`.
+        Classic forced alignment over the blank-extended sequence. Each phoneme's
+        value is the mean of the log-posteriors of the frames the alignment
+        assigned to it; phonemes with no frame get `NEG_INF`.
         """
         self.load()
         assert self._vocab is not None
@@ -222,7 +222,7 @@ class PhonemeRecognizer:
         if L > 1:
             dp[0, 1] = emit[0, 1]
 
-        # Transicao de salto permitida apenas entre fonemas distintos (regra CTC).
+        # Skip transition allowed only between distinct phonemes (CTC rule).
         can_skip = np.zeros(L, dtype=bool)
         can_skip[2:] = (ext[2:] != blank) & (ext[2:] != ext[:-2])
 
@@ -237,7 +237,7 @@ class PhonemeRecognizer:
             choice = stacked.argmax(axis=0)
             best = stacked.max(axis=0)
             dp[t] = best + emit[t]
-            bp[t] = np.arange(L) - choice               # 0/-1/-2 deslocamento
+            bp[t] = np.arange(L) - choice               # 0/-1/-2 offset
 
         last = L - 1 if L == 1 or dp[T - 1, L - 1] >= dp[T - 1, L - 2] else L - 2
         sums = np.zeros(len(known))
@@ -263,7 +263,7 @@ class PhonemeRecognizer:
         return out
 
     def recognize(self, audio: np.ndarray, expected: list[str]) -> PhonemeRecognition:
-        """Decodifica e pontua em uma unica passada do modelo."""
+        """Decodes and scores in a single pass of the model."""
         log_probs, elapsed_ms = self.log_posteriors(audio)
         return PhonemeRecognition(
             phonemes=self.decode(log_probs),

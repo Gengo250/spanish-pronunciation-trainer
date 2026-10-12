@@ -1,4 +1,4 @@
-"""Consultas de progresso."""
+"""Progress queries."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from ..assessment.types import AssessmentResult
 from ..scheduling.selector import MASTERY_SCORE, StudyState
 from .db import CardProgress, transaction, utcnow
 
-# Quantas cartas recentes alimentam a janela anti-repeticao do seletor.
+# How many recent cards feed the selector's anti-repetition window.
 RECENT_LIMIT = 20
 
 
@@ -16,10 +16,10 @@ class ProgressRepository:
     def __init__(self, connection: sqlite3.Connection) -> None:
         self.connection = connection
 
-    # --- escrita -----------------------------------------------------------
+    # --- writes ------------------------------------------------------------
 
     def record(self, card_id: str, result: AssessmentResult) -> int:
-        """Guarda uma tentativa. Devolve o id da linha criada."""
+        """Stores an attempt. Returns the id of the row created."""
         with transaction(self.connection) as conn:
             cursor = conn.execute(
                 "INSERT INTO attempts (card_id, created_at, practice_score, "
@@ -36,7 +36,7 @@ class ProgressRepository:
                     int(result.no_speech_detected),
                 ),
             )
-            # Erros recorrentes so tem valor se forem contados ao longo do tempo.
+            # Recurring errors are only worth anything if counted over time.
             for finding in result.findings:
                 if finding.kind in ("no_speech", "pause"):
                     continue
@@ -48,7 +48,7 @@ class ProgressRepository:
                 )
             return int(cursor.lastrowid)
 
-    # --- leitura -----------------------------------------------------------
+    # --- reads -------------------------------------------------------------
 
     def card_progress(self, card_id: str) -> CardProgress | None:
         row = self.connection.execute(
@@ -73,7 +73,7 @@ class ProgressRepository:
         )
 
     def study_state(self) -> StudyState:
-        """Monta o retrato que o seletor precisa, em tres consultas."""
+        """Builds the snapshot the selector needs, in three queries."""
         attempts: dict[str, int] = {}
         best: dict[str, float] = {}
         for row in self.connection.execute(
@@ -110,7 +110,7 @@ class ProgressRepository:
         }
 
     def common_mistakes(self, limit: int = 10) -> list[dict]:
-        """Erros mais repetidos. So vale olhar o que aconteceu mais de uma vez."""
+        """Most repeated errors. Only what happened more than once is worth looking at."""
         return [
             dict(row)
             for row in self.connection.execute(

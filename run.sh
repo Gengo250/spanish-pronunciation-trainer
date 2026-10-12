@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Sobe o treinador de pronúncia: backend (FastAPI) + frontend (Vite).
+# Starts the pronunciation trainer: backend (FastAPI) + frontend (Vite).
 #
-#   ./run.sh           primeiro plano; Ctrl+C derruba os dois
-#   ./run.sh --bg      segundo plano; sobrevive ao fechamento do terminal
-#   ./run.sh --stop    derruba o que foi iniciado com --bg
-#   ./run.sh --status  mostra o que está de pé
-#   ./run.sh --logs    acompanha os logs do modo --bg
+#   ./run.sh           foreground; Ctrl+C brings both down
+#   ./run.sh --bg      background; survives closing the terminal
+#   ./run.sh --stop    stops whatever was started with --bg
+#   ./run.sh --status  shows what is up
+#   ./run.sh --logs    follows the logs from --bg mode
 #
-# Em primeiro plano os processos são filhos do terminal: fechar a janela mata os
-# dois. O --bg resolve isso colocando cada servidor na própria sessão (setsid),
-# fora do alcance do SIGHUP que o terminal dispara ao fechar.
+# In the foreground the processes are children of the terminal: closing the
+# window kills both. --bg fixes that by putting each server in its own session
+# (setsid), out of reach of the SIGHUP the terminal fires on close.
 
 set -uo pipefail
 
@@ -20,38 +20,39 @@ FRONT_PORT="${FRONT_PORT:-5173}"
 
 mkdir -p "$RUN_DIR"
 
-die() { echo "erro: $*" >&2; exit 1; }
+die() { echo "error: $*" >&2; exit 1; }
 port_busy() { ss -ltn 2>/dev/null | grep -q ":$1 "; }
 alive() { [[ -f "$1" ]] && kill -0 "$(cat "$1")" 2>/dev/null; }
 
 check_deps() {
-  command -v uv  >/dev/null || die "uv não encontrado."
-  command -v npm >/dev/null || die "npm não encontrado."
+  command -v uv  >/dev/null || die "uv not found."
+  command -v npm >/dev/null || die "npm not found."
   [[ -d "$ROOT/frontend/node_modules" ]] ||
-    die "frontend sem dependências. Rode: cd frontend && npm install"
-  command -v ffmpeg    >/dev/null || echo "aviso: ffmpeg ausente — a gravação não será decodificada."
-  command -v espeak-ng >/dev/null || echo "aviso: espeak-ng ausente — sem fonemas de referência."
+    die "frontend dependencies missing. Run: cd frontend && npm install"
+  command -v ffmpeg    >/dev/null || echo "warning: ffmpeg missing — recordings will not be decoded."
+  command -v espeak-ng >/dev/null || echo "warning: espeak-ng missing — no reference phonemes."
   [[ -f "$ROOT/.env" ]] ||
-    echo "aviso: .env ausente — copie de .env.example, senão o áudio de referência falha."
+    echo "warning: .env missing — copy it from .env.example, or reference audio will fail."
 }
 
 ensure_ports_free() {
   if port_busy "$BACK_PORT"; then
-    die "porta $BACK_PORT ocupada. Rode ./run.sh --stop primeiro."
+    die "port $BACK_PORT is busy. Run ./run.sh --stop first."
   fi
   if port_busy "$FRONT_PORT"; then
-    die "porta $FRONT_PORT ocupada. Rode ./run.sh --stop primeiro."
+    die "port $FRONT_PORT is busy. Run ./run.sh --stop first."
   fi
 }
 
-# Põe um servidor na própria sessão e grava o PID REAL.
+# Puts a server in its own session and records the REAL pid.
 #
-# O `bash -c 'echo $$ …; exec …'` existe por causa de um erro que custou caro:
-# gravar o `$!` de `setsid` guarda o PID do próprio setsid, que morre logo em
-# seguida. O --stop então "parava" um processo inexistente e deixava o servidor
-# de pé segurando a porta. Aqui o shell interno grava o próprio PID e se
-# substitui pelo servidor com `exec`, então o PID continua válido — e, por ser
-# líder de sessão, `kill -- -PID` derruba o processo e seus filhos.
+# The `bash -c 'echo $$ …; exec …'` is there because of a bug that cost dearly:
+# recording the `$!` of `setsid` stores the pid of setsid itself, which dies
+# right afterwards. --stop would then "stop" a process that no longer existed
+# and leave the server up holding the port. Here the inner shell records its own
+# pid and replaces itself with the server via `exec`, so the pid stays valid —
+# and, being a session leader, `kill -- -PID` takes down the process and its
+# children.
 spawn() {
   local name="$1" dir="$2"; shift 2
   local pid_file="$RUN_DIR/$name.pid" log="$RUN_DIR/$name.log"
@@ -65,10 +66,10 @@ status() {
   local any=1
   for name in backend frontend; do
     if alive "$RUN_DIR/$name.pid"; then
-      echo "  $name: rodando (pid $(cat "$RUN_DIR/$name.pid"))"
+      echo "  $name: running (pid $(cat "$RUN_DIR/$name.pid"))"
       any=0
     else
-      echo "  $name: parado"
+      echo "  $name: stopped"
     fi
   done
   echo
@@ -86,15 +87,15 @@ stop() {
       kill -TERM -- "-$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null || true
       for _ in $(seq 20); do kill -0 "$pid" 2>/dev/null || break; sleep 0.2; done
       kill -0 "$pid" 2>/dev/null && kill -KILL -- "-$pid" 2>/dev/null
-      echo "  $name parado (pid $pid)"
+      echo "  $name stopped (pid $pid)"
       stopped=1
     fi
     rm -f "$pid_file"
   done
-  # Rede de segurança. Um `--bg` interrompido no meio deixa servidor de pé sem
-  # pid file, e aí o caminho acima não acha nada para matar. Avisar e sair seria
-  # mentir: "parar" tem de parar. Quem segura a porta é dono da aplicação, então
-  # derrubamos pela porta.
+  # Safety net. A `--bg` interrupted halfway leaves a server up with no pid
+  # file, and the path above then finds nothing to kill. Warning and exiting
+  # would be a lie: "stop" has to stop. Whoever holds the port owns the app, so
+  # we take it down by port.
   for port in "$BACK_PORT" "$FRONT_PORT"; do
     port_busy "$port" || continue
     pids=$(ss -ltnp 2>/dev/null | grep ":$port " |
@@ -103,15 +104,15 @@ stop() {
       kill -TERM "$pid" 2>/dev/null || true
       for _ in $(seq 15); do kill -0 "$pid" 2>/dev/null || break; sleep 0.2; done
       kill -0 "$pid" 2>/dev/null && kill -KILL "$pid" 2>/dev/null
-      echo "  processo órfão na porta $port parado (pid $pid)"
+      echo "  orphan process on port $port stopped (pid $pid)"
       stopped=1
     done
   done
 
-  [[ $stopped -eq 1 ]] || echo "  nada estava rodando"
+  [[ $stopped -eq 1 ]] || echo "  nothing was running"
 
   for port in "$BACK_PORT" "$FRONT_PORT"; do
-    port_busy "$port" && echo "  aviso: porta $port continua ocupada por outro processo."
+    port_busy "$port" && echo "  warning: port $port is still held by another process."
   done
   return 0
 }
@@ -119,7 +120,7 @@ stop() {
 start_background() {
   check_deps
   ensure_ports_free
-  echo "subindo em segundo plano…"
+  echo "starting in the background…"
 
   spawn backend  "$ROOT/backend"  uv run uvicorn sptrainer.api.app:app \
         --host 127.0.0.1 --port "$BACK_PORT"
@@ -127,22 +128,22 @@ start_background() {
 
   if curl -sf --retry 45 --retry-delay 1 --retry-connrefused --max-time 90 \
        "http://127.0.0.1:$BACK_PORT/api/health" > /dev/null 2>&1; then
-    echo "  backend respondeu."
+    echo "  backend responded."
   else
-    echo "  backend NÃO respondeu — veja $RUN_DIR/backend.log"
+    echo "  backend did NOT respond — see $RUN_DIR/backend.log"
   fi
 
   echo
   status || true
   echo
-  echo "  logs:  ./run.sh --logs"
-  echo "  parar: ./run.sh --stop"
+  echo "  logs: ./run.sh --logs"
+  echo "  stop: ./run.sh --stop"
 }
 
 start_foreground() {
   check_deps
   ensure_ports_free
-  echo "subindo em primeiro plano. Ctrl+C derruba os dois."
+  echo "starting in the foreground. Ctrl+C brings both down."
   echo "  interface: http://localhost:$FRONT_PORT"
   echo
 
@@ -152,8 +153,8 @@ start_foreground() {
   ( cd "$ROOT/frontend" && exec npm run dev -- --port "$FRONT_PORT" ) &
   local front=$!
 
-  # Sem o trap, Ctrl+C deixaria um dos dois órfão segurando a porta.
-  trap 'echo; echo "parando…"; kill "$back" "$front" 2>/dev/null || true' INT TERM
+  # Without the trap, Ctrl+C would leave one of the two orphaned on the port.
+  trap 'echo; echo "stopping…"; kill "$back" "$front" 2>/dev/null || true' INT TERM
   wait
 }
 
@@ -164,5 +165,5 @@ case "${1:---fg}" in
   --logs)   tail -f "$RUN_DIR"/backend.log "$RUN_DIR"/frontend.log ;;
   --fg|"")  start_foreground ;;
   -h|--help) sed -n '2,13p' "${BASH_SOURCE[0]}" | sed 's/^# \?//' ;;
-  *) die "opção desconhecida: $1 (use --fg, --bg, --stop, --status, --logs)" ;;
+  *) die "unknown option: $1 (use --fg, --bg, --stop, --status, --logs)" ;;
 esac

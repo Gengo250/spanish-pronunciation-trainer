@@ -1,8 +1,8 @@
-"""Configuracao por ambiente.
+"""Environment configuration.
 
-Segue o padrao do prototipo `voice-assistant`: tudo vem do `.env`, com padroes
-seguros, e cada secao e um dataclass que os modulos recebem pronto. Nenhum
-segredo aparece em `repr()` ou em log.
+Follows the pattern of the `voice-assistant` prototype: everything comes from
+`.env`, with safe defaults, and each section is a dataclass the modules receive
+ready to use. No secret ever appears in `repr()` or in a log.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
-# Variante de espanhol -> voz do espeak-ng usada no G2P de referencia.
+# Spanish variant -> espeak-ng voice used for the reference G2P.
 ACCENT_VOICES = {"es-419": "es-419", "es": "es"}
 DEFAULT_ACCENT = "es-419"
 
@@ -48,7 +48,7 @@ def _env_bool(name: str, default: bool) -> bool:
 
 
 class ConfigError(RuntimeError):
-    """Configuracao ausente ou invalida."""
+    """Missing or invalid configuration."""
 
 
 @dataclass
@@ -58,7 +58,7 @@ class ElevenLabsSettings:
     model_id: str = "eleven_multilingual_v2"
     output_format: str = "mp3_44100_128"
 
-    def __repr__(self) -> str:  # nunca vazar a chave em log/traceback
+    def __repr__(self) -> str:  # never leak the key into a log or traceback
         state = "set" if self.api_key else "missing"
         return (
             f"ElevenLabsSettings(api_key=<{state}>, voice_id={self.voice_id!r}, "
@@ -80,15 +80,16 @@ class WhisperSettings:
 
 @dataclass
 class PhonemeSettings:
-    """Modelo acustico de fonemas (wav2vec2 CTC, int8 ONNX)."""
+    """Acoustic phoneme model (wav2vec2 CTC, int8 ONNX)."""
 
     enabled: bool = True
     repo_id: str = "duyentq/sonari-wav2vec2-phoneme-int8"
     filename: str = "wav2vec2_int8.onnx"
     vocab_repo_id: str = "facebook/wav2vec2-lv-60-espeak-cv-ft"
     vocab_filename: str = "vocab.json"
-    # GOP medio abaixo deste valor vira candidato a erro de pronuncia.
-    # Provisorio (spike M0); calibrar com gravacoes reais. Ver docs/pronunciation-assessment.md
+    # A mean GOP below this value becomes a mispronunciation candidate.
+    # Provisional (M0 spike); calibrate with real recordings.
+    # See docs/pronunciation-assessment.md
     gop_threshold: float = -2.0
 
 
@@ -114,13 +115,13 @@ class Settings:
 
 
 def load_settings(env_file: Path | None = None) -> Settings:
-    """Le o `.env` (se houver) e monta as configuracoes."""
+    """Reads `.env` (if present) and assembles the settings."""
     load_dotenv(env_file or REPO_ROOT / ".env", override=False)
 
     accent = _env("SPANISH_ACCENT", DEFAULT_ACCENT)
     if accent not in ACCENT_VOICES:
         raise ConfigError(
-            f"SPANISH_ACCENT={accent!r} invalido. Use um de: {', '.join(ACCENT_VOICES)}"
+            f"SPANISH_ACCENT={accent!r} is invalid. Use one of: {', '.join(ACCENT_VOICES)}"
         )
 
     data_dir = Path(_env("DATA_DIR", "data"))

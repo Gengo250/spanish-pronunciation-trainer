@@ -1,8 +1,8 @@
-"""Cenarios obrigatorios da avaliacao (secao 13 da especificacao).
+"""Mandatory assessment scenarios (section 13 of the spec).
 
-Nenhum destes testes carrega o Whisper ou o modelo acustico: o objetivo e provar
-a LOGICA -- porta de silencio, palavras faltando, degradacao honesta -- de forma
-deterministica e rapida.
+None of these tests load Whisper or the acoustic model: the point is to prove
+the LOGIC -- silence gate, missing words, honest degradation -- deterministically
+and fast.
 """
 
 import numpy as np
@@ -21,7 +21,7 @@ def build(text, words=None, recognizer=None, **kw):
     )
 
 
-# --- fala correta ----------------------------------------------------------
+# --- correct speech --------------------------------------------------------
 
 def test_correct_phrase_scores_full_word_accuracy(speech_audio):
     result = build(PHRASE).assess(speech_audio, PHRASE)
@@ -31,12 +31,12 @@ def test_correct_phrase_scores_full_word_accuracy(speech_audio):
 
 
 def test_accent_marks_do_not_count_as_errors(speech_audio):
-    """O Whisper oscila entre 'gustaria' e 'gustaría'; isso nao e erro."""
+    """Whisper wavers between 'gustaria' and 'gustaría'; that is not an error."""
     result = build("me gustaria aprender español").assess(speech_audio, PHRASE)
     assert result.scores.word_accuracy == 1.0
 
 
-# --- fala com problemas ----------------------------------------------------
+# --- speech with problems --------------------------------------------------
 
 def test_missing_word_is_reported(speech_audio):
     result = build("Me gustaría español").assess(speech_audio, PHRASE)
@@ -57,10 +57,10 @@ def test_completely_different_speech(speech_audio):
     assert result.scores.word_accuracy == 0.0
 
 
-# --- gravacoes vazias ou mudas --------------------------------------------
+# --- empty or silent recordings --------------------------------------------
 
 def test_silence_reports_no_speech_instead_of_zero(speech_audio):
-    """Microfone mudo nao e erro de pronuncia: nao pode virar nota zero seca."""
+    """A silent mic is not a pronunciation error: it must not become a flat zero."""
     silence = np.zeros(16000 * 2, dtype=np.float32)
     result = build(PHRASE).assess(silence, PHRASE)
     assert result.no_speech_detected is True
@@ -78,7 +78,7 @@ def test_recording_too_short_is_rejected():
     assert build(PHRASE).assess(tiny, PHRASE).no_speech_detected is True
 
 
-# --- degradacao honesta ----------------------------------------------------
+# --- honest degradation ----------------------------------------------------
 
 def test_without_the_acoustic_model_there_are_no_phoneme_claims(speech_audio):
     result = build(PHRASE, recognizer=None).assess(speech_audio, PHRASE)
@@ -91,18 +91,18 @@ def test_without_the_acoustic_model_there_are_no_phoneme_claims(speech_audio):
 def test_a_failing_model_degrades_instead_of_crashing(speech_audio):
     class Broken:
         def recognize(self, audio, expected):
-            raise RuntimeError("modelo corrompido")
+            raise RuntimeError("corrupted model")
 
     result = build(PHRASE, recognizer=Broken()).assess(speech_audio, PHRASE)
     assert Capability.PHONEME_ANALYSIS not in result.capabilities
     assert result.findings_by_evidence(Evidence.PHONEME_ACOUSTIC) == []
-    assert result.scores.word_accuracy == 1.0, "a transcricao continua valendo"
+    assert result.scores.word_accuracy == 1.0, "the transcript still counts"
 
 
 def test_phonemes_disabled_by_configuration(speech_audio):
     class Unused:
         def recognize(self, audio, expected):  # pragma: no cover
-            raise AssertionError("nao deveria ser chamado")
+            raise AssertionError("should not be called")
 
     result = build(PHRASE, recognizer=Unused(), phonemes_enabled=False).assess(
         speech_audio, PHRASE
@@ -116,7 +116,7 @@ def test_fluency_is_omitted_without_a_reference(speech_audio):
     assert any("reference audio" in limit for limit in result.limitations)
 
 
-# --- prosodia --------------------------------------------------------------
+# --- prosody ---------------------------------------------------------------
 
 def test_long_pause_is_reported(speech_audio):
     words = [FakeWord("Me", 0.0, 0.3), FakeWord("gustaría", 1.5, 2.0)]
@@ -135,13 +135,13 @@ def test_slow_speech_is_reported(speech_audio):
     assert any(f.kind == "speech_rate" for f in result.findings)
 
 
-# --- ritmo so existe com mais de uma palavra -------------------------------
+# --- rhythm only exists with more than one word ----------------------------
 
 def test_single_word_card_reports_no_speech_rate(speech_audio):
-    """Uma palavra tem duracao, nao ritmo.
+    """A single word has duration, not rhythm.
 
-    Antes desta regra, "Gracias" comparado com a propria referencia acusava
-    "muito mais rapido que a referencia" -- contra o audio identico.
+    Before this rule, "Gracias" compared against its own reference reported
+    "much faster than the reference" -- against identical audio.
     """
     words = [FakeWord("Gracias", 0.2, 0.9)]
     result = build("Gracias", words).assess(
@@ -160,11 +160,11 @@ def test_two_words_do_get_a_rate(speech_audio):
 
 
 def test_reference_gop_removes_false_positives(speech_audio):
-    """Com a referencia como base, som intrinsecamente fraco deixa de virar erro.
+    """With the reference as the baseline, an intrinsically weak sound stops being an error.
 
-    /ð/ e /a/ atono tem GOP baixo mesmo numa pronuncia perfeita. Contra um
-    limiar absoluto isso vira acusacao; contra a referencia da propria carta,
-    a diferenca e zero e nada e reportado.
+    /ð/ and unstressed /a/ have low GOP even in perfect pronunciation. Against an
+    absolute threshold that becomes an accusation; against the card's own
+    reference, the difference is zero and nothing is reported.
     """
     class FixedRecognizer:
         def __init__(self, gop):
@@ -175,7 +175,7 @@ def test_reference_gop_removes_false_positives(speech_audio):
             return PhonemeRecognition(phonemes=list(expected), gop=self.gop[: len(expected)])
 
     expected_len = 20
-    weak = [-3.0] * expected_len          # tudo abaixo do piso absoluto
+    weak = [-3.0] * expected_len          # everything below the absolute floor
     pipeline = build(PHRASE, recognizer=FixedRecognizer(weak))
 
     without_reference = pipeline.assess(speech_audio, PHRASE)
