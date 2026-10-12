@@ -100,6 +100,17 @@ def _validate_card(card: Flashcard, report: ValidationReport, *, check_phonemes:
             "translation identical to the original text -- confirm it really is a cognate",
         )
 
+    # The interface shows both translations, so a card without the English one
+    # is a gap in the content, not a bug in the data.
+    if not card.translation_en:
+        report.add(card.id, "translation_en", "card without an English translation")
+    elif card.text == card.translation_en:
+        report.add(
+            card.id, "translation_en",
+            "English translation identical to the original text -- confirm it really "
+            "is a cognate",
+        )
+
     unexpected = sorted({c for c in card.text if c not in ALLOWED_CHARS})
     if unexpected:
         report.add(

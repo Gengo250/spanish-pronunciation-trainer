@@ -37,6 +37,7 @@ class CardResponse(BaseModel):
     id: str
     text: str
     translation: str
+    translation_en: str | None = None
     level: int
     card_type: str
     category: str
@@ -44,6 +45,7 @@ class CardResponse(BaseModel):
     pronunciation_focus: str | None = None
     example: str | None = None
     example_translation: str | None = None
+    example_translation_en: str | None = None
     tags: list[str] = []
     attempts: int = 0
     best_score: float | None = None
@@ -56,10 +58,12 @@ class CardResponse(BaseModel):
            voice: str = "es-419"):
         return cls(
             id=card.id, text=card.text, translation=card.translation,
+            translation_en=card.translation_en,
             level=card.level.value, card_type=card.card_type.value,
             category=card.category.value, grammar_note=card.grammar_note,
             pronunciation_focus=card.pronunciation_focus, example=card.example,
-            example_translation=card.example_translation, tags=card.tags,
+            example_translation=card.example_translation,
+            example_translation_en=card.example_translation_en, tags=card.tags,
             attempts=attempts, best_score=best,
             phonemes=_expected_phonemes(card.text, voice),
         )

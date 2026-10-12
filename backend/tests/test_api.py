@@ -24,8 +24,9 @@ def make_deck():
         Flashcard(id="c1", text=PHRASE, translation="Eu gostaria de aprender espanhol",
                   level=Level.INTERMEDIATE, card_type=CardType.SENTENCE,
                   category=Category.DAILY_LIFE),
-        Flashcard(id="c2", text="Hola", translation="Oi", level=Level.BEGINNER,
-                  card_type=CardType.VOCABULARY, category=Category.GREETINGS),
+        Flashcard(id="c2", text="Hola", translation="Oi", translation_en="Hi",
+                  level=Level.BEGINNER, card_type=CardType.VOCABULARY,
+                  category=Category.GREETINGS),
         Flashcard(id="c3", text="¿Cómo estás?", translation="Como vai?",
                   level=Level.BEGINNER, card_type=CardType.QUESTION,
                   category=Category.GREETINGS),
@@ -104,6 +105,16 @@ def test_invalid_category_is_a_400_with_options(client):
     response = client.get("/api/cards/next?category=nao_existe")
     assert response.status_code == 400
     assert "greetings" in response.json()["detail"]
+
+
+def test_card_carries_both_translations(client):
+    body = client.get("/api/cards/c2").json()
+    assert body["translation"] == "Oi"
+    assert body["translation_en"] == "Hi"
+
+
+def test_card_without_an_english_translation_returns_null(client):
+    assert client.get("/api/cards/c3").json()["translation_en"] is None
 
 
 def test_unknown_card_is_404(client):

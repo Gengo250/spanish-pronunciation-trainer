@@ -21,6 +21,7 @@ export type Card = {
   id: string;
   text: string;
   translation: string;
+  translation_en: string | null;
   level: number;
   card_type: string;
   category: string;
@@ -28,6 +29,7 @@ export type Card = {
   pronunciation_focus: string | null;
   example: string | null;
   example_translation: string | null;
+  example_translation_en: string | null;
   tags: string[];
   attempts: number;
   best_score: number | null;

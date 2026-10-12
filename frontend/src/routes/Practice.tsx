@@ -236,7 +236,16 @@ export default function Practice() {
 
           <div className="translation">
             {showTranslation ? (
-              <p className="translation__text">{card.translation}</p>
+              <div className="translation__pair">
+                <span className="label">{t.practice.translationPt}</span>
+                <p className="translation__text" lang="pt-BR">{card.translation}</p>
+                {card.translation_en && (
+                  <>
+                    <span className="label">{t.practice.translationEn}</span>
+                    <p className="translation__text" lang="en">{card.translation_en}</p>
+                  </>
+                )}
+              </div>
             ) : (
               <Button variant="quiet" onClick={() => setShowTranslation(true)} shortcut="T">
                 {t.practice.showTranslation}

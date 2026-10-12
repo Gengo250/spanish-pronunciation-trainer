@@ -147,7 +147,9 @@ ELEVENLABS_MODEL_ID=eleven_flash_v2_5
 ## Content
 
 95 starter cards across three levels, eight types (vocabulary, phrase, question,
-expression, verb, pronunciation, intonation) and fifteen themes.
+expression, verb, pronunciation, intonation) and fifteen themes. Every card
+carries two translations, Portuguese and English, and the practice screen shows
+both at once when you reveal them.
 
 The levels are **defined by the app** and do not map to CEFR.
 
@@ -157,8 +159,9 @@ curl -F 'file=@deck.csv' localhost:8000/api/content/validate
 ```
 
 The validator checks for repeated ids, duplicate text, length per level, Spanish
-question punctuation (`¿…?`), characters outside the Spanish alphabet, and
-whether the target phonemes actually appear in the pronunciation.
+question punctuation (`¿…?`), characters outside the Spanish alphabet, cards
+with no English translation, and whether the target phonemes actually appear in
+the pronunciation.
 Model-generated translations and grammar notes are **not** assumed correct — the
 starter dataset was written by hand, and the expected phonemes always come from
 `espeak-ng`.

@@ -63,6 +63,10 @@ class Flashcard(BaseModel):
     """What the learner reads and pronounces."""
 
     translation: str
+    translation_en: str | None = None
+    """Same card in English. Optional so older decks keep loading; when it is
+    there the interface shows both translations side by side."""
+
     language: str = "es"
     translation_language: str = "pt-BR"
     level: Level
@@ -81,6 +85,7 @@ class Flashcard(BaseModel):
 
     example: str | None = None
     example_translation: str | None = None
+    example_translation_en: str | None = None
     tags: list[str] = Field(default_factory=list)
     audio_path: str | None = None
     created_at: datetime | None = None
@@ -91,6 +96,14 @@ class Flashcard(BaseModel):
         if not value or not value.strip():
             raise ValueError("text cannot be empty")
         return value.strip()
+
+    @field_validator("translation_en", "example_translation_en")
+    @classmethod
+    def _blank_is_absent(cls, value: str | None) -> str | None:
+        """An empty cell in the spreadsheet means absent, not an empty string."""
+        if value is None:
+            return None
+        return value.strip() or None
 
     @field_validator("id")
     @classmethod

@@ -346,10 +346,19 @@
 }
 
 .translation { min-height: 2.5rem; display: flex; justify-content: center; align-items: center; }
+/* Portuguese and English share one grid so the two language labels line up. */
+.translation__pair {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: center;
+  align-items: baseline;
+  gap: var(--s1) var(--s3);
+  text-align: left;
+  animation: fade-in 0.25s var(--ease);
+}
 .translation__text {
   font-size: var(--text-md);
   color: var(--ink-soft);
-  animation: fade-in 0.25s var(--ease);
 }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 

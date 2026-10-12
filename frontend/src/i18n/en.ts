@@ -107,6 +107,8 @@ export const en = {
     playback: "Hear your recording",
     showTranslation: "Show translation",
     hideTranslation: "Hide translation",
+    translationPt: "PT",
+    translationEn: "EN",
     tryAgain: "Try again",
     nextCard: "Next card",
     focusLabel: "Focus",

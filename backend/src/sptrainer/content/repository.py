@@ -21,10 +21,10 @@ LIST_SEPARATOR = ";"
 LIST_FIELDS = ("phoneme_targets", "expected_phonemes", "tags")
 
 CSV_COLUMNS = (
-    "id", "text", "translation", "language", "translation_language",
-    "level", "card_type", "category", "grammar_note", "pronunciation_focus",
-    "phoneme_targets", "expected_phonemes", "example", "example_translation",
-    "tags", "audio_path",
+    "id", "text", "translation", "translation_en", "language",
+    "translation_language", "level", "card_type", "category", "grammar_note",
+    "pronunciation_focus", "phoneme_targets", "expected_phonemes", "example",
+    "example_translation", "example_translation_en", "tags", "audio_path",
 )
 
 

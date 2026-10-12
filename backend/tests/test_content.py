@@ -45,6 +45,11 @@ def test_seed_deck_has_no_validation_errors(deck):
     assert report.ok, [f"{i.card_id}: {i.message}" for i in report.errors]
 
 
+def test_seed_deck_translates_every_card_into_english(deck):
+    """The practice screen shows both translations; neither may be missing."""
+    assert [c.id for c in deck.cards if not c.translation_en] == []
+
+
 def test_seed_deck_ids_are_unique(deck):
     assert len(deck.ids()) == len(deck.cards)
 
@@ -64,6 +69,7 @@ def test_csv_round_trip_preserves_everything(deck, tmp_path):
         assert copy.id == original.id
         assert copy.text == original.text
         assert copy.translation == original.translation
+        assert copy.translation_en == original.translation_en
         assert copy.level == original.level
         assert copy.card_type == original.card_type
         assert copy.tags == original.tags
@@ -119,6 +125,13 @@ def test_cognate_translation_is_a_warning_not_an_error():
     report = validate_deck(deck)
     assert report.ok
     assert any("cognate" in i.message for i in report.warnings)
+
+
+def test_missing_english_translation_is_a_warning_not_an_error():
+    """A deck written before the English column still has to load."""
+    report = validate_deck(Deck(cards=[card(translation_en=None)]))
+    assert report.ok
+    assert any(i.field_name == "translation_en" for i in report.warnings)
 
 
 def test_phoneme_target_check_accepts_allophones():
