@@ -1,0 +1,1637 @@
+{
+  "name": "es_starter",
+  "language": "es",
+  "description": "Baralho inicial de espanhol: 3 niveis, 8 tipos de carta, 15 categorias.",
+  "cards": [
+    {
+      "id": "b-greet-01",
+      "text": "Hola",
+      "translation": "Oi / Olá",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "greetings",
+      "pronunciation_focus": "O 'h' em espanhol é sempre mudo: diga 'ola'.",
+      "phoneme_targets": [
+        "o",
+        "l"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "essencial"
+      ]
+    },
+    {
+      "id": "b-greet-02",
+      "text": "Buenos días",
+      "translation": "Bom dia",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "phrase",
+      "category": "greetings",
+      "pronunciation_focus": "O 'd' entre vogais vira um som suave, quase como 'dh' em inglês.",
+      "phoneme_targets": [
+        "ð"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-greet-03",
+      "text": "Buenas tardes",
+      "translation": "Boa tarde",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "phrase",
+      "category": "greetings",
+      "pronunciation_focus": "Atenção ao 'r' simples (tap) de 'tardes'.",
+      "phoneme_targets": [
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-greet-04",
+      "text": "Buenas noches",
+      "translation": "Boa noite",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "phrase",
+      "category": "greetings",
+      "pronunciation_focus": "'ch' é um único som: /tʃ/.",
+      "phoneme_targets": [
+        "tʃ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-greet-05",
+      "text": "Gracias",
+      "translation": "Obrigado / Obrigada",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "expression",
+      "category": "greetings",
+      "pronunciation_focus": "Na América Latina, o 'c' de 'gracias' soa como /s/ (seseo).",
+      "phoneme_targets": [
+        "s"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-greet-06",
+      "text": "Por favor",
+      "translation": "Por favor",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "expression",
+      "category": "greetings",
+      "pronunciation_focus": "O 'v' soa como um 'b' suave entre vogais.",
+      "phoneme_targets": [
+        "β"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-greet-07",
+      "text": "De nada",
+      "translation": "De nada",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "expression",
+      "category": "greetings",
+      "pronunciation_focus": "Os dois 'd' são diferentes: o primeiro é mais forte, o segundo mais suave.",
+      "phoneme_targets": [
+        "ð"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-greet-08",
+      "text": "Hasta luego",
+      "translation": "Até logo",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "phrase",
+      "category": "greetings",
+      "pronunciation_focus": "O 'g' de 'luego' é suave entre vogais.",
+      "phoneme_targets": [
+        "ɣ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-greet-09",
+      "text": "Mucho gusto",
+      "translation": "Muito prazer",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "expression",
+      "category": "greetings",
+      "pronunciation_focus": "Dito ao conhecer alguém.",
+      "phoneme_targets": [
+        "tʃ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-greet-10",
+      "text": "Lo siento",
+      "translation": "Sinto muito",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "expression",
+      "category": "feelings",
+      "pronunciation_focus": "O ditongo 'ie' é uma sílaba só.",
+      "phoneme_targets": [
+        "j"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-num-01",
+      "text": "uno",
+      "translation": "um",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "numbers",
+      "phoneme_targets": [
+        "u"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-num-02",
+      "text": "dos",
+      "translation": "dois",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "numbers",
+      "phoneme_targets": [],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-num-03",
+      "text": "tres",
+      "translation": "três",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "numbers",
+      "pronunciation_focus": "O 'r' aqui é um tap rápido, não o 'rr' forte.",
+      "phoneme_targets": [
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-num-04",
+      "text": "cuatro",
+      "translation": "quatro",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "numbers",
+      "pronunciation_focus": "'cu' soa /kw/.",
+      "phoneme_targets": [
+        "w",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-num-05",
+      "text": "cinco",
+      "translation": "cinco",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "numbers",
+      "pronunciation_focus": "Na América Latina 'ci' soa /si/.",
+      "phoneme_targets": [
+        "s"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-num-06",
+      "text": "siete",
+      "translation": "sete",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "numbers",
+      "phoneme_targets": [
+        "j"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-num-07",
+      "text": "nueve",
+      "translation": "nove",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "numbers",
+      "pronunciation_focus": "Ditongo 'ue' e 'v' suave.",
+      "phoneme_targets": [
+        "w",
+        "β"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-num-08",
+      "text": "veinte",
+      "translation": "vinte",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "numbers",
+      "phoneme_targets": [
+        "β"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-col-01",
+      "text": "rojo",
+      "translation": "vermelho",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "colors",
+      "pronunciation_focus": "Dois sons difíceis juntos: 'rr' inicial forte e a jota /x/.",
+      "phoneme_targets": [
+        "r",
+        "x"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "dificil"
+      ]
+    },
+    {
+      "id": "b-col-02",
+      "text": "verde",
+      "translation": "verde",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "colors",
+      "phoneme_targets": [
+        "β",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-col-03",
+      "text": "azul",
+      "translation": "azul",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "colors",
+      "pronunciation_focus": "Na América Latina o 'z' soa /s/.",
+      "phoneme_targets": [
+        "s"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-col-04",
+      "text": "amarillo",
+      "translation": "amarelo",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "colors",
+      "pronunciation_focus": "'ll' soa /ʝ/ na maior parte da América Latina.",
+      "phoneme_targets": [
+        "ʝ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-col-05",
+      "text": "negro",
+      "translation": "preto",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "colors",
+      "phoneme_targets": [
+        "ɣ",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-col-06",
+      "text": "blanco",
+      "translation": "branco",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "colors",
+      "phoneme_targets": [
+        "l"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-obj-01",
+      "text": "la mesa",
+      "translation": "a mesa",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "objects",
+      "phoneme_targets": [
+        "s"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-obj-02",
+      "text": "el libro",
+      "translation": "o livro",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "objects",
+      "phoneme_targets": [
+        "β",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-obj-03",
+      "text": "la puerta",
+      "translation": "a porta",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "objects",
+      "phoneme_targets": [
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-obj-04",
+      "text": "el agua",
+      "translation": "a água",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "objects",
+      "grammar_note": "Substantivo feminino que leva artigo 'el' no singular.",
+      "pronunciation_focus": "Feminino, mas usa 'el' por começar com 'a' tônico.",
+      "phoneme_targets": [
+        "ɣ",
+        "w"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-obj-05",
+      "text": "la llave",
+      "translation": "a chave",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "objects",
+      "pronunciation_focus": "'ll' soa /ʝ/, não como o 'lh' português.",
+      "phoneme_targets": [
+        "ʝ",
+        "β"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "dificil"
+      ]
+    },
+    {
+      "id": "b-obj-06",
+      "text": "el año",
+      "translation": "o ano",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "time",
+      "pronunciation_focus": "'ñ' é /ɲ/, como o 'nh' português. 'ano' sem til é outra palavra.",
+      "phoneme_targets": [
+        "ɲ"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "dificil"
+      ]
+    },
+    {
+      "id": "b-fam-01",
+      "text": "la familia",
+      "translation": "a família",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "family",
+      "phoneme_targets": [
+        "j"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-fam-02",
+      "text": "mi hermano",
+      "translation": "meu irmão",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "family",
+      "pronunciation_focus": "O 'h' é mudo: diga 'ermano'.",
+      "phoneme_targets": [
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-fam-03",
+      "text": "mi hija",
+      "translation": "minha filha",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "vocabulary",
+      "category": "family",
+      "pronunciation_focus": "'h' mudo e jota forte: 'ira'.",
+      "phoneme_targets": [
+        "x"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "dificil"
+      ]
+    },
+    {
+      "id": "b-day-01",
+      "text": "Me llamo Miguel.",
+      "translation": "Meu nome é Miguel.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "sentence",
+      "category": "daily_life",
+      "pronunciation_focus": "'ll' em 'llamo' soa /ʝ/.",
+      "phoneme_targets": [
+        "ʝ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-day-02",
+      "text": "Quiero aprender español.",
+      "translation": "Quero aprender espanhol.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "sentence",
+      "category": "daily_life",
+      "pronunciation_focus": "O 'ñ' de 'español' é /ɲ/.",
+      "phoneme_targets": [
+        "ɲ",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-day-03",
+      "text": "No entiendo.",
+      "translation": "Não entendo.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "sentence",
+      "category": "daily_life",
+      "phoneme_targets": [
+        "j"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-day-04",
+      "text": "Hablo un poco de español.",
+      "translation": "Falo um pouco de espanhol.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "sentence",
+      "category": "daily_life",
+      "phoneme_targets": [
+        "β",
+        "ɲ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-day-05",
+      "text": "Tengo hambre.",
+      "translation": "Estou com fome.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "sentence",
+      "category": "food",
+      "grammar_note": "Espanhol usa 'tener' onde o português usa 'estar com'.",
+      "pronunciation_focus": "Literalmente 'tenho fome'.",
+      "phoneme_targets": [
+        "ŋ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-day-06",
+      "text": "Estoy cansado.",
+      "translation": "Estou cansado.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "sentence",
+      "category": "feelings",
+      "phoneme_targets": [
+        "s"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-q-01",
+      "text": "¿Cómo estás?",
+      "translation": "Como você está?",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "question",
+      "category": "greetings",
+      "pronunciation_focus": "Pergunta abre com '¿' e termina subindo.",
+      "phoneme_targets": [
+        "s"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-q-02",
+      "text": "¿Cómo te llamas?",
+      "translation": "Como você se chama?",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "question",
+      "category": "greetings",
+      "phoneme_targets": [
+        "ʝ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-q-03",
+      "text": "¿Dónde está el baño?",
+      "translation": "Onde fica o banheiro?",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "question",
+      "category": "travel",
+      "pronunciation_focus": "'ñ' de 'baño' é /ɲ/.",
+      "phoneme_targets": [
+        "ɲ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-q-04",
+      "text": "¿Cuánto cuesta?",
+      "translation": "Quanto custa?",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "question",
+      "category": "travel",
+      "phoneme_targets": [
+        "w"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-q-05",
+      "text": "¿Qué hora es?",
+      "translation": "Que horas são?",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "question",
+      "category": "time",
+      "pronunciation_focus": "'qu' soa /k/ e o 'h' é mudo.",
+      "phoneme_targets": [
+        "k"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "b-pr-01",
+      "text": "perro",
+      "translation": "cachorro",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "pronunciation",
+      "category": "sounds",
+      "pronunciation_focus": "O 'rr' é vibrante múltipla: a língua bate várias vezes. Compare com 'pero' (mas).",
+      "phoneme_targets": [
+        "r"
+      ],
+      "expected_phonemes": [],
+      "example": "El perro corre.",
+      "example_translation": "O cachorro corre.",
+      "tags": [
+        "rr",
+        "dificil"
+      ]
+    },
+    {
+      "id": "b-pr-02",
+      "text": "pero",
+      "translation": "mas",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "pronunciation",
+      "category": "sounds",
+      "pronunciation_focus": "Um único tap. É o par mínimo de 'perro'.",
+      "phoneme_targets": [
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "example": "Quiero ir, pero no puedo.",
+      "example_translation": "Quero ir, mas não posso.",
+      "tags": [
+        "rr"
+      ]
+    },
+    {
+      "id": "b-pr-03",
+      "text": "caro",
+      "translation": "caro",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "pronunciation",
+      "category": "sounds",
+      "pronunciation_focus": "Tap simples. Compare com 'carro'.",
+      "phoneme_targets": [
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "rr"
+      ]
+    },
+    {
+      "id": "b-pr-04",
+      "text": "carro",
+      "translation": "carro",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "pronunciation",
+      "category": "sounds",
+      "pronunciation_focus": "Vibrante múltipla, diferente do 'r' português do Rio.",
+      "phoneme_targets": [
+        "r"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "rr",
+        "dificil"
+      ]
+    },
+    {
+      "id": "b-pr-05",
+      "text": "jamón",
+      "translation": "presunto",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 1,
+      "card_type": "pronunciation",
+      "category": "food",
+      "pronunciation_focus": "A jota /x/ é raspada na garganta, como o 'rr' carioca.",
+      "phoneme_targets": [
+        "x"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "jota",
+        "dificil"
+      ]
+    },
+    {
+      "id": "i-day-01",
+      "text": "Ayer fui al supermercado.",
+      "translation": "Ontem eu fui ao supermercado.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "sentence",
+      "category": "daily_life",
+      "grammar_note": "'Fui' é pretérito indefinido de 'ir' (e também de 'ser').",
+      "pronunciation_focus": "'y' em 'ayer' soa /ʝ/.",
+      "phoneme_targets": [
+        "ʝ",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-day-02",
+      "text": "Todos los días tomo café por la mañana.",
+      "translation": "Todo dia eu tomo café de manhã.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "sentence",
+      "category": "daily_life",
+      "pronunciation_focus": "'ñ' de 'mañana'.",
+      "phoneme_targets": [
+        "ɲ",
+        "ð"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-day-03",
+      "text": "Anoche dormí muy bien.",
+      "translation": "Ontem à noite dormi muito bem.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "sentence",
+      "category": "daily_life",
+      "phoneme_targets": [
+        "tʃ",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-day-04",
+      "text": "Estoy buscando un trabajo nuevo.",
+      "translation": "Estou procurando um emprego novo.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "sentence",
+      "category": "work",
+      "grammar_note": "'Estar' + gerúndio para ação em curso.",
+      "pronunciation_focus": "Jota em 'trabajo'.",
+      "phoneme_targets": [
+        "x",
+        "β"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-day-05",
+      "text": "Mañana voy a visitar a mis abuelos.",
+      "translation": "Amanhã vou visitar meus avós.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "sentence",
+      "category": "family",
+      "grammar_note": "'Ir a' + infinitivo expressa futuro próximo.",
+      "phoneme_targets": [
+        "ɲ",
+        "β"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-trav-01",
+      "text": "¿Podrías ayudarme a encontrar esta dirección?",
+      "translation": "Você poderia me ajudar a encontrar este endereço?",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "question",
+      "category": "travel",
+      "grammar_note": "'Podrías' é condicional: forma educada de pedir.",
+      "pronunciation_focus": "'y' de 'ayudarme' e o 'rr' interno.",
+      "phoneme_targets": [
+        "ʝ",
+        "ð"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-trav-02",
+      "text": "Quisiera reservar una habitación para dos noches.",
+      "translation": "Eu gostaria de reservar um quarto para duas noites.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "sentence",
+      "category": "travel",
+      "grammar_note": "'Quisiera' é mais formal e educado que 'quiero'.",
+      "pronunciation_focus": "'h' mudo em 'habitación'.",
+      "phoneme_targets": [
+        "β",
+        "s"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-trav-03",
+      "text": "¿A qué hora sale el próximo tren?",
+      "translation": "A que horas sai o próximo trem?",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "question",
+      "category": "travel",
+      "phoneme_targets": [
+        "s",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-trav-04",
+      "text": "Perdí mi maleta en el aeropuerto.",
+      "translation": "Perdi minha mala no aeroporto.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "sentence",
+      "category": "travel",
+      "phoneme_targets": [
+        "ɾ",
+        "w"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-trav-05",
+      "text": "Me gustaría aprender a hablar español con fluidez.",
+      "translation": "Eu gostaria de aprender a falar espanhol com fluência.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "sentence",
+      "category": "daily_life",
+      "grammar_note": "'Me gustaría' + infinitivo.",
+      "pronunciation_focus": "Frase longa: mantenha o ritmo e não quebre entre 'gustaría' e 'aprender'.",
+      "phoneme_targets": [
+        "ɾ",
+        "β",
+        "ɲ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-food-01",
+      "text": "La cuenta, por favor.",
+      "translation": "A conta, por favor.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "expression",
+      "category": "food",
+      "phoneme_targets": [
+        "w"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-food-02",
+      "text": "¿Qué me recomienda usted?",
+      "translation": "O que você me recomenda?",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "question",
+      "category": "food",
+      "grammar_note": "'Usted' é o tratamento formal.",
+      "phoneme_targets": [
+        "r",
+        "j"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-food-03",
+      "text": "Prefiero el pescado a la carne.",
+      "translation": "Prefiro peixe a carne.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "sentence",
+      "category": "food",
+      "phoneme_targets": [
+        "ɾ",
+        "s"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-vb-01",
+      "text": "Yo hablo, tú hablas, él habla.",
+      "translation": "Eu falo, tu falas, ele fala.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "verb",
+      "category": "grammar",
+      "grammar_note": "Presente do indicativo, verbo regular em -ar.",
+      "pronunciation_focus": "'h' sempre mudo nas três formas.",
+      "phoneme_targets": [
+        "β",
+        "l"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-vb-02",
+      "text": "Ayer comí, hoy como, mañana comeré.",
+      "translation": "Ontem comi, hoje como, amanhã comerei.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "verb",
+      "category": "grammar",
+      "grammar_note": "Pretérito, presente e futuro de 'comer'.",
+      "pronunciation_focus": "Três tempos na mesma frase: ouça a sílaba tônica mudar de lugar.",
+      "phoneme_targets": [
+        "ɲ",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-vb-03",
+      "text": "Siempre hago ejercicio por la tarde.",
+      "translation": "Sempre faço exercício à tarde.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "verb",
+      "category": "daily_life",
+      "grammar_note": "'Hago' é a 1ª pessoa irregular de 'hacer'.",
+      "pronunciation_focus": "'j' de 'ejercicio' é a jota /x/.",
+      "phoneme_targets": [
+        "x",
+        "s"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-vb-04",
+      "text": "Ella ya se había ido cuando llegué.",
+      "translation": "Ela já tinha ido embora quando cheguei.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "verb",
+      "category": "grammar",
+      "grammar_note": "Pretérito mais-que-perfeito com 'había' + particípio.",
+      "pronunciation_focus": "Dois 'll' com som /ʝ/.",
+      "phoneme_targets": [
+        "ʝ",
+        "β"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-feel-01",
+      "text": "Estoy muy orgulloso de ti.",
+      "translation": "Estou muito orgulhoso de você.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "sentence",
+      "category": "feelings",
+      "pronunciation_focus": "'ll' de 'orgulloso'.",
+      "phoneme_targets": [
+        "ʝ",
+        "ɣ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-feel-02",
+      "text": "No me siento bien hoy.",
+      "translation": "Não estou me sentindo bem hoje.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "sentence",
+      "category": "feelings",
+      "phoneme_targets": [
+        "j"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-q-01",
+      "text": "¿Has estado alguna vez en México?",
+      "translation": "Você já esteve no México alguma vez?",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "question",
+      "category": "travel",
+      "pronunciation_focus": "O 'x' de 'México' soa como a jota /x/.",
+      "phoneme_targets": [
+        "x",
+        "ɣ"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "jota"
+      ]
+    },
+    {
+      "id": "i-q-02",
+      "text": "¿Te gustaría venir conmigo?",
+      "translation": "Você gostaria de vir comigo?",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "question",
+      "category": "daily_life",
+      "pronunciation_focus": "Pergunta de sim/não: a entonação sobe no final.",
+      "phoneme_targets": [
+        "ɾ",
+        "β"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "i-in-01",
+      "text": "¿Llegaste tarde?",
+      "translation": "Você chegou tarde?",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "intonation",
+      "category": "grammar",
+      "grammar_note": "Mesma frase da afirmação, só muda a melodia.",
+      "pronunciation_focus": "Pergunta: a voz SOBE no final.",
+      "phoneme_targets": [
+        "ʝ",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "entonacao"
+      ]
+    },
+    {
+      "id": "i-in-02",
+      "text": "Llegaste tarde.",
+      "translation": "Você chegou tarde.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "intonation",
+      "category": "grammar",
+      "pronunciation_focus": "Afirmação: a voz DESCE no final. Compare com a pergunta.",
+      "phoneme_targets": [
+        "ʝ",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "entonacao"
+      ]
+    },
+    {
+      "id": "i-pr-01",
+      "text": "El perro de Ramón corre por el parque.",
+      "translation": "O cachorro do Ramón corre pelo parque.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "pronunciation",
+      "category": "sounds",
+      "pronunciation_focus": "Quatro 'r' diferentes na mesma frase: 'rr' forte e taps simples.",
+      "phoneme_targets": [
+        "r",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "rr",
+        "dificil"
+      ]
+    },
+    {
+      "id": "i-pr-02",
+      "text": "El hijo del jefe trabaja en Jalisco.",
+      "translation": "O filho do chefe trabalha em Jalisco.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "pronunciation",
+      "category": "sounds",
+      "pronunciation_focus": "Quatro jotas /x/ seguidas. Raspe na garganta.",
+      "phoneme_targets": [
+        "x"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "jota",
+        "dificil"
+      ]
+    },
+    {
+      "id": "i-pr-03",
+      "text": "La señora española enseña en Cataluña.",
+      "translation": "A senhora espanhola ensina na Catalunha.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 2,
+      "card_type": "pronunciation",
+      "category": "sounds",
+      "pronunciation_focus": "Quatro 'ñ' /ɲ/.",
+      "phoneme_targets": [
+        "ɲ"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "enhe"
+      ]
+    },
+    {
+      "id": "a-gr-01",
+      "text": "Aunque estaba cansado, decidió continuar estudiando.",
+      "translation": "Embora estivesse cansado, decidiu continuar estudando.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "sentence",
+      "category": "grammar",
+      "grammar_note": "'Aunque' + indicativo indica fato real.",
+      "pronunciation_focus": "Pausa curta depois da vírgula, sem quebrar a frase.",
+      "phoneme_targets": [
+        "ð",
+        "j"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "a-gr-02",
+      "text": "Si hubiera tenido más tiempo, habría terminado el proyecto.",
+      "translation": "Se eu tivesse tido mais tempo, teria terminado o projeto.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "sentence",
+      "category": "grammar",
+      "grammar_note": "Condicional irreal: 'si' + mais-que-perfeito do subjuntivo + condicional composto.",
+      "pronunciation_focus": "Frase longa em duas metades: deixe a entonação cair só no fim.",
+      "phoneme_targets": [
+        "β",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "a-gr-03",
+      "text": "Es fundamental comprender las diferencias culturales.",
+      "translation": "É fundamental compreender as diferenças culturais.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "sentence",
+      "category": "culture",
+      "grammar_note": "'Es + adjetivo + infinitivo' para juízo impessoal.",
+      "phoneme_targets": [
+        "ð",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "a-gr-04",
+      "text": "Ojalá que todo salga bien mañana.",
+      "translation": "Tomara que tudo dê certo amanhã.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "sentence",
+      "category": "feelings",
+      "grammar_note": "'Ojalá que' sempre pede subjuntivo.",
+      "pronunciation_focus": "Duas jotas e um 'ñ'.",
+      "phoneme_targets": [
+        "x",
+        "ɲ",
+        "ɣ"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "jota"
+      ]
+    },
+    {
+      "id": "a-gr-05",
+      "text": "No creo que sea tan sencillo como parece.",
+      "translation": "Não acho que seja tão simples quanto parece.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "sentence",
+      "category": "grammar",
+      "grammar_note": "Negar 'creer' força o subjuntivo 'sea'.",
+      "pronunciation_focus": "'ll' de 'sencillo'.",
+      "phoneme_targets": [
+        "ʝ",
+        "s"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "a-gr-06",
+      "text": "Me habría gustado que vinieras con nosotros.",
+      "translation": "Eu teria gostado que você viesse conosco.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "sentence",
+      "category": "grammar",
+      "grammar_note": "Condicional composto + imperfeito do subjuntivo.",
+      "phoneme_targets": [
+        "β",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "a-gr-07",
+      "text": "Cuanto más lo pienso, menos lo entiendo.",
+      "translation": "Quanto mais penso nisso, menos entendo.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "sentence",
+      "category": "grammar",
+      "grammar_note": "Correlação 'cuanto más... menos...'.",
+      "pronunciation_focus": "Estrutura em espelho: as duas metades têm o mesmo ritmo.",
+      "phoneme_targets": [
+        "j",
+        "s"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "a-id-01",
+      "text": "No hay mal que por bien no venga.",
+      "translation": "Há males que vêm para bem.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "expression",
+      "category": "idioms",
+      "grammar_note": "Provérbio fixo; não traduza palavra por palavra.",
+      "pronunciation_focus": "Provérbio: ritmo regular, quase cantado.",
+      "phoneme_targets": [
+        "j",
+        "β"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "ditado"
+      ]
+    },
+    {
+      "id": "a-id-02",
+      "text": "Más vale tarde que nunca.",
+      "translation": "Antes tarde do que nunca.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "expression",
+      "category": "idioms",
+      "phoneme_targets": [
+        "β",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "ditado"
+      ]
+    },
+    {
+      "id": "a-id-03",
+      "text": "Estar en las nubes",
+      "translation": "Estar no mundo da lua",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "expression",
+      "category": "idioms",
+      "pronunciation_focus": "Literalmente 'estar nas nuvens'.",
+      "phoneme_targets": [
+        "β",
+        "s"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "ditado"
+      ]
+    },
+    {
+      "id": "a-id-04",
+      "text": "Tirar la casa por la ventana",
+      "translation": "Gastar sem limites",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "expression",
+      "category": "idioms",
+      "pronunciation_focus": "Literalmente 'jogar a casa pela janela'.",
+      "phoneme_targets": [
+        "β",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "ditado"
+      ]
+    },
+    {
+      "id": "a-id-05",
+      "text": "Me costó un ojo de la cara.",
+      "translation": "Me custou os olhos da cara.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "expression",
+      "category": "idioms",
+      "pronunciation_focus": "A jota de 'ojo'.",
+      "phoneme_targets": [
+        "x"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "ditado",
+        "jota"
+      ]
+    },
+    {
+      "id": "a-ab-01",
+      "text": "La libertad implica siempre una responsabilidad.",
+      "translation": "A liberdade implica sempre uma responsabilidade.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "sentence",
+      "category": "culture",
+      "phoneme_targets": [
+        "β",
+        "ð"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "a-ab-02",
+      "text": "El desarrollo sostenible exige decisiones difíciles.",
+      "translation": "O desenvolvimento sustentável exige decisões difíceis.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "sentence",
+      "category": "culture",
+      "pronunciation_focus": "'rr' de 'desarrollo' e 'll' logo depois.",
+      "phoneme_targets": [
+        "r",
+        "ʝ",
+        "x"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "rr",
+        "dificil"
+      ]
+    },
+    {
+      "id": "a-ab-03",
+      "text": "La desigualdad no se resuelve con buenas intenciones.",
+      "translation": "A desigualdade não se resolve com boas intenções.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "sentence",
+      "category": "culture",
+      "phoneme_targets": [
+        "ɣ",
+        "β"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "a-ab-04",
+      "text": "Conviene distinguir entre lo urgente y lo importante.",
+      "translation": "Convém distinguir entre o urgente e o importante.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "sentence",
+      "category": "work",
+      "phoneme_targets": [
+        "β",
+        "x"
+      ],
+      "expected_phonemes": [],
+      "tags": []
+    },
+    {
+      "id": "a-pr-01",
+      "text": "El ferrocarril recorre la sierra.",
+      "translation": "A ferrovia percorre a serra.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "pronunciation",
+      "category": "sounds",
+      "pronunciation_focus": "Cinco 'r' alternando entre tap e vibrante múltipla.",
+      "phoneme_targets": [
+        "r"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "rr",
+        "dificil"
+      ]
+    },
+    {
+      "id": "a-pr-02",
+      "text": "El general Jiménez trabajó en Guadalajara.",
+      "translation": "O general Jiménez trabalhou em Guadalajara.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "pronunciation",
+      "category": "sounds",
+      "pronunciation_focus": "Jota em quase toda palavra.",
+      "phoneme_targets": [
+        "x"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "jota",
+        "dificil"
+      ]
+    },
+    {
+      "id": "a-in-01",
+      "text": "¿No me digas que ya terminaste?",
+      "translation": "Não me diga que você já terminou?",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "intonation",
+      "category": "grammar",
+      "pronunciation_focus": "Surpresa: a voz sobe bem mais que numa pergunta comum.",
+      "phoneme_targets": [
+        "ɣ",
+        "ʝ"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "entonacao"
+      ]
+    },
+    {
+      "id": "a-in-02",
+      "text": "Claro que sí, por supuesto.",
+      "translation": "Claro que sim, com certeza.",
+      "language": "es",
+      "translation_language": "pt-BR",
+      "level": 3,
+      "card_type": "intonation",
+      "category": "grammar",
+      "pronunciation_focus": "Ênfase: desce firme no final.",
+      "phoneme_targets": [
+        "s",
+        "ɾ"
+      ],
+      "expected_phonemes": [],
+      "tags": [
+        "entonacao"
+      ]
+    }
+  ]
+}
