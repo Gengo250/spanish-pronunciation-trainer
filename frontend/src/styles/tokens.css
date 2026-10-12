@@ -1,0 +1,195 @@
+/* ---------------------------------------------------------------------------
+   Design tokens — "Azulejo"
+
+   Grounded in the tile tradition shared by Spain and Mexico: cobalt pigment on
+   clay-white, with ochre and verdigris from the same Talavera palette.
+
+   One typographic rule runs through the whole product:
+     serif  -> Spanish content, and only that. The face means "read this aloud."
+     sans   -> interface chrome.
+     mono   -> measurement: phonemes, scores, counts.
+
+   THEME
+   Three states, because two is not enough: follow the system (default), or
+   force light, or force dark. The light palette is defined on bare `:root`, the
+   dark one is applied both by `prefers-color-scheme` — guarded so an explicit
+   light choice wins — and by `[data-theme="dark"]`.
+
+   Every pigment carries two values. `--x` is the pigment as a BACKGROUND, with
+   `--x-on` as the text that sits on it; `--x-fg` is the same pigment used as
+   FOREGROUND against the page. A single value cannot do both jobs across two
+   themes without failing contrast in one of them.
+--------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: light;
+
+  /* --- surface ---------------------------------------------------------- */
+  --clay: #faf9f6;          /* porcelain ground */
+  --clay-sunk: #f1eee7;     /* recessed panels, inputs */
+  --clay-raised: #ffffff;   /* lifted tiles */
+  --line: #e2dcd1;
+  --line-strong: #cdc4b4;
+
+  /* --- ink -------------------------------------------------------------- */
+  --ink: #221e1a;
+  --ink-soft: #5c554c;
+  --ink-faint: #8d8578;
+
+  /* --- pigments --------------------------------------------------------- */
+  --cobalt: #1b3f8f;        /* literal pigment: the mark, tinted surfaces */
+  --cobalt-fg: #1b3f8f;
+
+  /* The interactive accent is semantic, not a pigment name, because it is NOT
+     the same pigment in both themes. Under light it is cobalt; under dark it
+     becomes warm brass — which is how a cobalt tile actually reads under indoor
+     light, and which keeps the dark theme away from the electric-blue look that
+     every generated interface arrives at. */
+  --accent: #1b3f8f;
+  --accent-deep: #142e69;
+  --accent-on: #ffffff;
+  --accent-fg: #1b3f8f;
+  --accent-wash: #e8edf8;
+
+  --ochre: #c8842b;
+  --ochre-fg: #94610f;      /* darkened so it reads on clay */
+  --ochre-wash: #faf0dd;
+
+  --verdigris: #2f7a66;
+  --verdigris-fg: #276856;
+  --verdigris-wash: #e6f1ed;
+
+  --oxide: #b5452f;
+  --oxide-fg: #a33c27;
+  --oxide-on: #ffffff;
+  --oxide-wash: #fbeae6;
+
+  /* --- type ------------------------------------------------------------- */
+  --font-spanish: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --font-ui: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.375rem;
+  --text-xl: 1.875rem;
+  --text-2xl: 2.5rem;
+  --text-hero: clamp(2.25rem, 7vw, 4rem);
+
+  --tracking-label: 0.1em;
+
+  /* --- space (4px base) -------------------------------------------------- */
+  --s1: 0.25rem;
+  --s2: 0.5rem;
+  --s3: 0.75rem;
+  --s4: 1rem;
+  --s5: 1.5rem;
+  --s6: 2rem;
+  --s7: 3rem;
+  --s8: 4rem;
+
+  /* --- form ------------------------------------------------------------- */
+  --radius: 4px;            /* tiles are tiles, not pills */
+  --radius-lg: 6px;
+  --border: 1px solid var(--line);
+
+  --lift: 0 1px 0 var(--line-strong);
+  --lift-hover: 0 2px 0 var(--line-strong);
+
+  --page: 68rem;
+  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/* --- dark ------------------------------------------------------------------
+   Not black: a deep slate with a blue cast, so the ground still belongs to the
+   cobalt family and the glazed-tile character survives the switch. Text stays
+   warm off-white rather than pure white, which keeps the paper feel and is
+   easier on the eyes across a long session.
+--------------------------------------------------------------------------- */
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --clay: #15171c;
+  --clay-sunk: #1b1e25;
+  --clay-raised: #1e222a;
+  --line: #2b303a;
+  --line-strong: #3d4450;
+
+  --ink: #e9e5dc;
+  --ink-soft: #a9a398;
+  --ink-faint: #7b7668;
+
+  --cobalt: #4a6fc0;        /* still the mark's pigment, lifted to read on slate */
+  --cobalt-fg: #93aae0;
+
+  /* Warm brass carries every interactive surface here. */
+  --accent: #c07a33;
+  --accent-deep: #a9682a;
+  --accent-on: #17120c;     /* dark text on brass, not white */
+  --accent-fg: #e3a05c;
+  --accent-wash: #2a2015;
+
+  --ochre: #d8ad45;         /* pushed yellower so it reads apart from the brass */
+  --ochre-fg: #e9c164;
+  --ochre-wash: #2a2512;
+
+  --verdigris: #3e9b82;
+  --verdigris-fg: #5fbfa3;
+  --verdigris-wash: #182a26;
+
+  --oxide: #cf5a44;
+  --oxide-fg: #e8826c;
+  --oxide-on: #ffffff;
+  --oxide-wash: #2c1a17;
+
+  --lift: 0 1px 0 rgba(0, 0, 0, 0.5);
+  --lift-hover: 0 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Same palette when the system asks for dark — but only while the learner has
+   not explicitly chosen light. Without that guard, "force light" would be
+   overridden by the OS and the control would look broken. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  color-scheme: dark;
+
+  --clay: #15171c;
+  --clay-sunk: #1b1e25;
+  --clay-raised: #1e222a;
+  --line: #2b303a;
+  --line-strong: #3d4450;
+
+  --ink: #e9e5dc;
+  --ink-soft: #a9a398;
+  --ink-faint: #7b7668;
+
+  --cobalt: #4a6fc0;        /* still the mark's pigment, lifted to read on slate */
+  --cobalt-fg: #93aae0;
+
+  /* Warm brass carries every interactive surface here. */
+  --accent: #c07a33;
+  --accent-deep: #a9682a;
+  --accent-on: #17120c;     /* dark text on brass, not white */
+  --accent-fg: #e3a05c;
+  --accent-wash: #2a2015;
+
+  --ochre: #d8ad45;         /* pushed yellower so it reads apart from the brass */
+  --ochre-fg: #e9c164;
+  --ochre-wash: #2a2512;
+
+  --verdigris: #3e9b82;
+  --verdigris-fg: #5fbfa3;
+  --verdigris-wash: #182a26;
+
+  --oxide: #cf5a44;
+  --oxide-fg: #e8826c;
+  --oxide-on: #ffffff;
+  --oxide-wash: #2c1a17;
+
+  --lift: 0 1px 0 rgba(0, 0, 0, 0.5);
+  --lift-hover: 0 2px 0 rgba(0, 0, 0, 0.5);
+  }
+}
