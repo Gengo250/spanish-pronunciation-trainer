@@ -1,203 +1,210 @@
-# Avaliação de pronúncia: o que é medido, como, e o que não dá para afirmar
+# Pronunciation assessment: what is measured, how, and what cannot be claimed
 
-Este é o documento mais importante do projeto. Ele existe porque a parte fácil de
-um treinador de pronúncia é mostrar um número, e a parte difícil é esse número
-significar alguma coisa.
+This is the most important document in the project. It exists because the easy
+part of a pronunciation trainer is showing a number, and the hard part is making
+that number mean something.
 
-Regra que organiza tudo o que vem abaixo: **nenhuma afirmação sobre a fala do
-aluno sem evidência medida que a sustente.** Quando a medida não existe, o
-resultado diz que não existe, em vez de estimar.
+The rule that organizes everything below: **no claim about the learner's speech
+without measured evidence behind it.** When the measurement does not exist, the
+result says so instead of estimating.
 
 ---
 
-## 1. O pipeline
+## 1. The pipeline
 
 ```
-                      ┌─ espeak-ng (es-419 | es) ──▶ fonemas esperados ─┐
-texto do flashcard ───┤                                                 │
-                      └─ ElevenLabs (cache) ───────▶ áudio de referência ┤
-                                                           │            │
-                                                           ▼            ▼
-                                                   perfil de referência (GOP + ritmo)
-                                                                        │
-gravação do aluno ──▶ ffmpeg ──▶ PCM 16 kHz ──┬──▶ faster-whisper ──▶ palavras + tempos
-                                              │                         │
-                                              └──▶ wav2vec2 CTC ──▶ GOP por fonema
-                                                                        │
-                                                                        ▼
-                                                        comparação relativa ──▶ resultado
+                     ┌─ espeak-ng (es-419 | es) ──▶ expected phonemes ─┐
+flashcard text ──────┤                                                 │
+                     └─ ElevenLabs (cached) ──────▶ reference audio ───┤
+                                                           │           │
+                                                           ▼           ▼
+                                                  reference profile (GOP + rhythm)
+                                                                       │
+learner recording ──▶ ffmpeg ──▶ 16 kHz PCM ──┬──▶ faster-whisper ──▶ words + timings
+                                              │                        │
+                                              └──▶ wav2vec2 CTC ──▶ per-phoneme GOP
+                                                                       │
+                                                                       ▼
+                                                       relative comparison ──▶ result
 ```
 
-| Etapa | Onde roda | Custo |
+| Stage | Where it runs | Cost |
 |---|---|---|
-| G2P (`espeak-ng`) | local | nenhum |
-| Áudio de referência (ElevenLabs) | **nuvem** | créditos, **uma vez por carta** |
-| Decodificação (`ffmpeg`) | local | nenhum |
-| Transcrição (faster-whisper `small`) | local | CPU |
-| Fonemas (wav2vec2 int8 ONNX) | local | CPU |
+| G2P (`espeak-ng`) | local | none |
+| Reference audio (ElevenLabs) | **cloud** | credits, **once per card** |
+| Decoding (`ffmpeg`) | local | none |
+| Transcription (faster-whisper `small`) | local | CPU |
+| Phonemes (wav2vec2 int8 ONNX) | local | CPU |
 
-A ElevenLabs é o único componente que sai da máquina, e só na primeira vez que
-cada carta é ouvida.
-
----
-
-## 2. Por que dois modelos, e não só o Whisper
-
-Transcrição não mede pronúncia. O Whisper usa contexto de linguagem e acerta a
-frase mesmo quando os sons saíram errados — é treinado exatamente para isso. Uma
-nota baseada só na transcrição mede *inteligibilidade*, não pronúncia.
-
-O segundo modelo responde a outra pergunta. Em vez de "que sons são estes?", ele
-pergunta "o áudio sustenta o som /x/ **neste trecho**?". Isso é o **GOP**
-(*Goodness of Pronunciation*): alinha-se a sequência esperada ao áudio por CTC
-*forced alignment* e lê-se o log-posterior médio de cada fonema.
-
-A peça que torna isso possível sem GPU: o `espeak-ng` emite rótulos de fonema do
-espeak, e o modelo `wav2vec2-lv-60-espeak-cv-ft` **emite os mesmos rótulos**.
-Esperado e reconhecido caem no mesmo alfabeto, então comparar é medir, não inferir.
-
-Cobertura verificada: 397 fonemas gerados a partir de 75 palavras, nas duas
-variantes — **100% dos símbolos do espeak-ng existem no vocabulário de 392 tokens
-do modelo, nenhum não mapeado.** O espanhol usa 31–33 fonemas distintos.
+ElevenLabs is the only component that leaves the machine, and only the first
+time each card is heard.
 
 ---
 
-## 3. Três resultados que mudaram o desenho
+## 2. Why two models, and not Whisper alone
 
-### 3.1 Decodificação livre não funciona — é preciso restringir ao espanhol
+Transcription does not measure pronunciation. Whisper uses language context and
+recovers the sentence even when the sounds came out wrong — it is trained for
+exactly that. A score based only on the transcript measures *intelligibility*,
+not pronunciation.
 
-O modelo é multilíngue sobre 392 símbolos. Decodificando livremente, ele
-interpreta espanhol como se fosse mandarim:
+The second model answers a different question. Instead of "what sounds are
+these?", it asks "does the audio support the sound /x/ **in this stretch**?".
+That is the **GOP** (*Goodness of Pronunciation*): the expected sequence is
+aligned to the audio by CTC *forced alignment* and the mean log-posterior of each
+phoneme is read off.
+
+The piece that makes this possible without a GPU: `espeak-ng` emits espeak
+phoneme labels, and the `wav2vec2-lv-60-espeak-cv-ft` model **emits the same
+labels**. Expected and recognized land in the same alphabet, so comparing is
+measuring, not inferring.
+
+Verified coverage: 397 phonemes generated from 75 words, across both variants —
+**100% of the espeak-ng symbols exist in the model's 392-token vocabulary, none
+unmapped.** Spanish uses 31–33 distinct phonemes.
+
+---
+
+## 3. Three results that changed the design
+
+### 3.1 Free decoding does not work — it has to be restricted to Spanish
+
+The model is multilingual over 392 symbols. Decoding freely, it reads Spanish as
+if it were Mandarin:
 
 ```
-esperado:  x  w  a  n  t  ɾ  a  x  o   ...     ("Juan trajo jamón…")
-ouvido:    s. u5 w ɑ5 n t  l ɑ5 ɕ onɡ5 ...     ← fonemas com marca de tom
+expected: x  w  a  n  t  ɾ  a  x  o   ...     ("Juan trajo jamón…")
+heard:    s. u5 w ɑ5 n t  l ɑ5 ɕ onɡ5 ...    ← phonemes carrying tone marks
 ```
 
-Mascarar os logits para o inventário do espanhol antes do `argmax` derrubou o PER
-de **85.7% para 46.4%** no mesmo áudio. A máscara não é otimização: sem ela o
-módulo não funciona.
+Masking the logits down to the Spanish inventory before the `argmax` dropped the
+PER from **85.7% to 46.4%** on the same audio. The mask is not an optimization:
+without it the module does not work.
 
-### 3.2 Fala sintética não serve para calibrar
+### 3.2 Synthetic speech is no good for calibration
 
-A primeira bateria usou áudio do próprio `espeak-ng`. Resultado: até a pronúncia
-*correta* marcava 28–88% de PER. O `espeak-ng` é síntese de formantes robótica, e
-o wav2vec2 foi treinado em voz humana. Repetindo com áudio natural:
+The first round used audio from `espeak-ng` itself. Result: even *correct*
+pronunciation scored 28–88% PER. `espeak-ng` is robotic formant synthesis, and
+wav2vec2 was trained on human voice. Repeating with natural audio:
 
-| frase | PER sintético → natural | GOP natural | GOP com sotaque |
+| phrase | synthetic → natural PER | natural GOP | accented GOP |
 |---|---|---|---|
 | Me gustaría aprender español | 28.0% → **8.0%** | −0.21 | −1.67 |
 | El perro corre rápido… | 19.2% → **19.2%** | −0.18 | −5.12 |
 | Juan trajo jamón… | 46.4% → **28.6%** | −0.70 | −3.71 |
 
-Com voz natural o GOP separa certo de errado de forma consistente nas três
-frases; com voz sintética ele errava o sinal em 2 de 5.
+With natural voice the GOP separates right from wrong consistently across all
+three phrases; with synthetic voice it got the sign wrong in 2 of 5.
 
-### 3.3 Limiar absoluto acusa erro em pronúncia correta
+### 3.3 An absolute threshold flags errors in correct pronunciation
 
-Restava um problema sério: o áudio de referência da ElevenLabs — correto por
-construção — gerava acusações como *"em 'aprender', o áudio sustenta mal o som
-/a/"*.
+One serious problem remained: the ElevenLabs reference audio — correct by
+construction — produced accusations like *"in 'aprender', the audio poorly
+supports the sound /a/"*.
 
-As causas são fonéticas, não aleatórias:
+The causes are phonetic, not random:
 
-- **Sinalefa.** Em `gustaría aprender` os dois /a/ se fundem numa vogal só. É
-  espanhol correto; o /a/ esperado não tem suporte acústico independente.
-- **Aproximantes intervocálicas.** /β ð ɣ/ são de baixa energia por natureza.
-- **Palavras átonas.** O /d/ de `de` é fraco mesmo numa leitura perfeita.
+- **Synalepha.** In `gustaría aprender` the two /a/ merge into a single vowel.
+  That is correct Spanish; the expected /a/ has no independent acoustic support.
+- **Intervocalic approximants.** /β ð ɣ/ are low-energy by nature.
+- **Unstressed words.** The /d/ in `de` is weak even in a perfect reading.
 
-Medido sobre 79 fonemas:
+Measured over 79 phonemes:
 
-| critério | falsos positivos na referência | detecções no sotaque |
+| criterion | false positives on the reference | detections on the accent |
 |---|---|---|
-| absoluto −2.0 | 5/79 | 45/79 |
-| absoluto −2.5 | 1/79 | 42/79 |
-| **relativo, Δ < −2.0** | **0/79 por construção** | **45/79** |
+| absolute −2.0 | 5/79 | 45/79 |
+| absolute −2.5 | 1/79 | 42/79 |
+| **relative, Δ < −2.0** | **0/79 by construction** | **45/79** |
 
-**Decisão: comparar o aluno com a referência da mesma frase, som a som.** O que é
-intrinsecamente fraco é fraco nos dois lados, a diferença fica perto de zero e
-não vira erro. Mesma capacidade de detecção, zero falsos positivos — e absorve de
-graça sinalefa, aproximantes e átonas, sem regra especial para cada caso.
+**Decision: compare the learner against the reference of the same sentence,
+sound by sound.** What is intrinsically weak is weak on both sides, the
+difference stays near zero and does not become an error. Same detection
+capability, zero false positives — and it absorbs synalepha, approximants and
+unstressed words for free, with no special rule for each case.
 
-O limiar absoluto (−2.5, mais conservador) só entra quando não há referência.
+The absolute threshold (−2.5, more conservative) only kicks in when there is no
+reference.
 
 ---
 
-## 4. Sotaque válido não é erro
+## 4. Valid accent is not an error
 
-Equivalências aplicadas antes de qualquer comparação. Elas derrubaram o PER da
-fala correta de 18.6% para 3.9%, deixando o sotaque carregado praticamente
-intacto (60.0% → 58.7%) — suprimem artefato de representação, não erro real.
+Equivalences are applied before any comparison. They dropped the PER of correct
+speech from 18.6% to 3.9%, leaving heavily accented speech practically untouched
+(60.0% → 58.7%) — they suppress a representation artifact, not a real error.
 
-| classe | pares | por quê |
+| class | pairs | why |
 |---|---|---|
-| alofonia | b~β, d~ð, ɡ~ɣ, n~ŋ | obrigatória em espanhol |
-| regional | s~θ, ʝ~ʎ, ʝ~j, s~h, x~h | seseo/distinción, yeísmo, aspiração |
-| artefato | ɾ~r, x~k | limitação medida do reconhecedor |
+| allophony | b~β, d~ð, ɡ~ɣ, n~ŋ | mandatory in Spanish |
+| regional | s~θ, ʝ~ʎ, ʝ~j, s~h, x~h | seseo/distinción, yeísmo, aspiration |
+| artifact | ɾ~r, x~k | measured limitation of the recognizer |
 
-**A equivalência não é transitiva, de propósito.** `s~h` vale e `x~h` vale, mas
-encadear os dois tornaria *casa* e *caja* indistinguíveis. Pelo mesmo motivo
-`n~ŋ` entra e `n~m` fica de fora: *cama* e *cana* são par mínimo real.
+**The equivalence is non-transitive, on purpose.** `s~h` holds and `x~h` holds,
+but chaining the two would make *casa* and *caja* indistinguishable. For the same
+reason `n~ŋ` is in and `n~m` is out: *cama* and *cana* are a real minimal pair.
 
-A confusão /x/~/k/ entra na nota — senão toda palavra com jota perde pontos — mas
-**nunca vira feedback por som**: nessa direção não há como separar erro do aluno
-de erro do modelo.
+The /x/~/k/ confusion counts toward the score — otherwise every word with a jota
+loses points — but **never becomes per-sound feedback**: in that direction there
+is no way to separate the learner's error from the model's.
 
 ---
 
-## 5. As fórmulas
+## 5. The formulas
 
-Todas em `assessment/scoring.py`, puras e testadas.
+All in `assessment/scoring.py`, pure and tested.
 
 ```
-word_accuracy    = 1 − WER(esperado, reconhecido)
-                   palavras minúsculas, sem pontuação, sem acento — mas "ñ"
-                   preservado, porque "ano" e "año" são palavras diferentes
+word_accuracy    = 1 − WER(expected, recognized)
+                   lowercased words, no punctuation, no accents — but "ñ"
+                   preserved, because "ano" and "año" are different words
 
-phoneme_accuracy = 1 − PER(esperado, ouvido)
-                   após equivalências e colapso de geminadas
+phoneme_accuracy = 1 − PER(expected, heard)
+                   after equivalences and geminate collapsing
 
-fluency          = ritmo × pausas
-                   ritmo  = 1.0 entre 0.75× e 1.30× da referência, caindo fora
-                   pausas = 1 − max(0, total_pausado − 0.6s) / 3s
-                   None quando não há referência ou a carta tem 1 palavra
+fluency          = rhythm × pauses
+                   rhythm = 1.0 between 0.75× and 1.30× of the reference,
+                            falling off outside that
+                   pauses = 1 − max(0, total_paused − 0.6s) / 3s
+                   None when there is no reference or the card has 1 word
 
-practice_score   = 100 × média ponderada dos componentes disponíveis
-                   palavra 0.50 · fonema 0.35 · fluência 0.15
-                   componente ausente é excluído e os pesos renormalizados
+practice_score   = 100 × weighted mean of the available components
+                   word 0.50 · phoneme 0.35 · fluency 0.15
+                   a missing component is excluded and the weights renormalized
 ```
 
-Nota de prática **não é certificação**. Não há mapeamento para CEFR. Serve para o
-aluno comparar tentativas da mesma carta.
+A practice score **is not a certification**. There is no mapping to CEFR. It is
+there for the learner to compare attempts at the same card.
 
 ---
 
-## 6. Desempenho medido (Intel Alder Lake-P, 12 threads, sem GPU)
+## 6. Measured performance (Intel Alder Lake-P, 12 threads, no GPU)
 
-| etapa | tempo |
+| stage | time |
 |---|---|
-| wav2vec2 int8 (trecho de 2–3 s) | **137–242 ms** (RTF ≈ 0.08) |
+| wav2vec2 int8 (2–3 s utterance) | **137–242 ms** (RTF ≈ 0.08) |
 | faster-whisper `small` | ~2–4 s |
-| perfil da referência | ~160 ms, uma vez por carta |
+| reference profile | ~160 ms, once per card |
 
-Sem PyTorch: ONNX Runtime (~50 MB) no lugar de um wheel de ~900 MB.
+No PyTorch: ONNX Runtime (~50 MB) in place of a ~900 MB wheel.
 
 ---
 
-## 7. Limitações — leia antes de confiar nos números
+## 7. Limitations — read before trusting the numbers
 
-1. **A classe negativa não foi validada em fala humana.** Os exemplos "com
-   sotaque" são síntese em voz portuguesa, não gravações de estudantes reais. A
-   capacidade de detecção está demonstrada contra esse substituto, **não** contra
-   erro humano de verdade. Os limiares devem ser recalibrados com gravações reais.
-2. **Amostra pequena.** 79 fonemas, 3 frases, uma voz de referência.
-3. **/x/ vs /k/ não é reportado** (seção 4).
-4. **Entonação só em grosso.** A F0 sai de autocorrelação e sustenta apenas
-   "sobe / desce / plano" no fim do enunciado. Nada mais fino é afirmado.
-5. **Sem referência, a análise é mais conservadora** — limiar absoluto, menos
-   detecções.
-6. **O G2P roda palavra a palavra** e por isso não vê alofonia entre palavras
-   (`días` isolado dá /d/; em `buenos días` soa /ð/). As classes de equivalência
-   cobrem o caso.
-7. **A nota mede o que foi medido.** Sem modelo acústico ela vem só de palavras e
-   ritmo, e o resultado declara isso em `capabilities` e `limitations`.
+1. **The negative class was not validated on human speech.** The "accented"
+   examples are synthesis in a Portuguese voice, not recordings of real learners.
+   Detection capability is demonstrated against that stand-in, **not** against
+   real human error. The thresholds should be recalibrated with real recordings.
+2. **Small sample.** 79 phonemes, 3 phrases, one reference voice.
+3. **/x/ vs /k/ is not reported** (section 4).
+4. **Intonation only coarsely.** F0 comes from autocorrelation and supports only
+   "rises / falls / flat" at the end of the utterance. Nothing finer is claimed.
+5. **Without a reference, the analysis is more conservative** — absolute
+   threshold, fewer detections.
+6. **G2P runs word by word** and therefore does not see allophony across words
+   (`días` in isolation gives /d/; in `buenos días` it sounds /ð/). The
+   equivalence classes cover the case.
+7. **The score measures what was measured.** With no acoustic model it comes only
+   from words and rhythm, and the result declares that in `capabilities` and
+   `limitations`.

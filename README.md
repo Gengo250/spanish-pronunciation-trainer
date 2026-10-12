@@ -1,56 +1,56 @@
-# Treino de pronúncia · Espanhol
+# Pronunciation Trainer · Spanish
 
-Aplicação local de estudo de espanhol construída em volta de flashcards, áudio de
-referência e **avaliação acústica da pronúncia** — não apenas transcrição.
+A local Spanish study app built around flashcards, reference audio and
+**acoustic pronunciation assessment** — not just transcription.
 
-A interface é toda em inglês; o conteúdo estudado é espanhol. Essa separação é
-deliberada e sustentada pelo código: todo texto de interface vive em
-`frontend/src/i18n/en.ts`, e a tipografia a reforça — a serifada é usada só para
-espanhol, a sem serifa só para a interface, a monoespaçada só para medidas.
+The interface is entirely in English; the material studied is Spanish. The
+separation is deliberate and the code holds it up: every piece of interface text
+lives in `frontend/src/i18n/en.ts`, and the typography reinforces it — serif only
+for Spanish, sans only for the interface, mono only for measurements.
 
-Roda em hardware modesto: toda a análise da fala acontece na CPU, sem GPU e sem
-PyTorch. A única chamada externa é a síntese do áudio de referência, uma vez por
-carta.
+It runs on modest hardware: all speech analysis happens on the CPU, no GPU and no
+PyTorch. The only outbound call is synthesizing the reference audio, once per
+card.
 
 ```
-flashcard ──▶ ouvir referência ──▶ gravar ──▶ retorno som a som ──▶ repetir
+flashcard ──▶ hear the reference ──▶ record ──▶ sound-by-sound feedback ──▶ repeat
 ```
 
 ---
 
-## O que ele mede, de verdade
+## What it actually measures
 
-A maioria dos treinadores compara a transcrição com o texto esperado. Isso mede
-inteligibilidade: o Whisper usa contexto de linguagem e acerta a frase mesmo com
-os sons errados.
+Most trainers compare the transcript against the expected text. That measures
+intelligibility: Whisper uses language context and recovers the sentence even
+when the sounds came out wrong.
 
-Aqui há uma segunda medida. O `espeak-ng` gera os fonemas esperados e um modelo
-wav2vec2 pergunta, para cada um deles, **se o áudio sustenta aquele som naquele
-trecho** (GOP, via CTC forced alignment). Os dois componentes usam o mesmo
-alfabeto de fonemas, então a comparação é medição e não inferência.
+Here there is a second measure. `espeak-ng` produces the expected phonemes and a
+wav2vec2 model asks, for each one, **whether the audio supports that sound in
+that stretch** (GOP, via CTC forced alignment). Both components use the same
+phoneme alphabet, so the comparison is a measurement and not an inference.
 
-Não há modelo de linguagem em lugar nenhum do caminho: todo texto que o aluno lê
-vem de medida ou de conteúdo escrito à mão.
+There is no language model anywhere along the path: every piece of text the
+learner reads comes from a measurement or from hand-written content.
 
-Cada observação na tela carrega a etiqueta da evidência que a sustenta —
-`transcrição`, `som` ou `ritmo`. Quando a análise acústica não está disponível,
-a aplicação **diz isso** e não produz conclusões sobre sons.
+Every observation on screen carries a label for the evidence behind it —
+`transcript`, `sound` or `rhythm`. When acoustic analysis is unavailable, the app
+**says so** rather than producing conclusions about sounds.
 
-O raciocínio completo, com os números medidos e as limitações, está em
-[`docs/pronunciation-assessment.md`](docs/pronunciation-assessment.md). Vale a
-leitura antes de confiar em qualquer nota.
+The full reasoning, with the measured numbers and the limitations, is in
+[`docs/pronunciation-assessment.md`](docs/pronunciation-assessment.md). Worth
+reading before trusting any score.
 
 ---
 
-## Requisitos
+## Requirements
 
-| Componente | Versão | Observação |
+| Component | Version | Note |
 |---|---|---|
 | Python | ≥ 3.12 | via `uv` |
-| Node.js | ≥ 20.19 | o aviso do npm 12 sobre a versão é cosmético |
-| `ffmpeg` | qualquer | decodifica o áudio do navegador |
-| `espeak-ng` | qualquer | **obrigatório** — gera os fonemas de referência |
-| Conta ElevenLabs | free serve | 10k caracteres/mês bastam, graças ao cache |
+| Node.js | ≥ 20.19 | npm 12's version warning is cosmetic |
+| `ffmpeg` | any | decodes the browser's audio |
+| `espeak-ng` | any | **required** — generates the reference phonemes |
+| ElevenLabs account | free tier is enough | 10k characters/month suffice, thanks to the cache |
 
 ```bash
 # Arch
@@ -59,39 +59,39 @@ sudo pacman -S espeak-ng ffmpeg
 sudo apt install espeak-ng ffmpeg
 ```
 
-## Instalação
+## Install
 
 ```bash
 cp .env.example .env
-$EDITOR .env          # preencha ELEVENLABS_API_KEY
+$EDITOR .env          # fill in ELEVENLABS_API_KEY
 chmod 600 .env
 
 cd backend  && uv sync
 cd ../frontend && npm install
 ```
 
-## Execução
+## Running
 
-A aplicação são dois processos: a API em `:8000` e a interface em `:5173`. O
-`run.sh` sobe os dois.
+The app is two processes: the API on `:8000` and the interface on `:5173`.
+`run.sh` starts both.
 
 ```bash
-./run.sh          # primeiro plano — Ctrl+C derruba os dois
-./run.sh --bg     # segundo plano — sobrevive ao fechamento do terminal
-./run.sh --stop   # derruba o que subiu com --bg
-./run.sh --status # o que está de pé
-./run.sh --logs   # acompanha os logs do modo --bg
+./run.sh          # foreground — Ctrl+C brings both down
+./run.sh --bg     # background — survives closing the terminal
+./run.sh --stop   # stops whatever --bg started
+./run.sh --status # what is up
+./run.sh --logs   # follow the logs from --bg mode
 ```
 
-Abra <http://localhost:5173>. O Vite encaminha `/api` para o backend.
+Open <http://localhost:5173>. Vite proxies `/api` to the backend.
 
-**Primeiro plano morre junto com o terminal.** `uv run uvicorn` e `npm run dev`
-ficam presos à janela: ao fechá-la, os dois recebem SIGHUP e caem. O `--bg`
-coloca cada servidor na própria sessão (`setsid`), fora do alcance desse sinal —
-dá para fechar o terminal, ou até deslogar, que eles continuam.
+**Foreground dies with the terminal.** `uv run uvicorn` and `npm run dev` are
+tied to the window: close it and both get SIGHUP and go down. `--bg` puts each
+server in its own session (`setsid`), out of that signal's reach — you can close
+the terminal, or even log out, and they keep running.
 
-Os PIDs e os logs ficam em `.run/` (fora do versionamento). Se preferir subir na
-mão, sem o script:
+PIDs and logs live in `.run/` (not versioned). If you prefer to start them by
+hand, without the script:
 
 ```bash
 # terminal 1
@@ -100,15 +100,15 @@ cd backend && uv run uvicorn sptrainer.api.app:app --reload --port 8000
 cd frontend && npm run dev
 ```
 
-Na primeira gravação o faster-whisper e o modelo de fonemas são baixados e
-carregados — essa tentativa demora mais; as seguintes, não.
+On the first recording, faster-whisper and the phoneme model are downloaded and
+loaded — that attempt takes longer; the following ones do not.
 
-## Testes
+## Tests
 
 ```bash
 cd backend
-uv run pytest                      # suíte completa, sem tocar em serviço externo
-uv run pytest -m "not integration" # explícito
+uv run pytest                      # full suite, no external service touched
+uv run pytest -m "not integration" # explicit
 uv run ruff check src tests
 
 cd ../frontend
@@ -116,26 +116,27 @@ npm test            # interface logic: the copy shown to the learner
 npm run typecheck
 ```
 
-A ElevenLabs é dublada em todos os testes automatizados: **rodar a suíte não
-consome créditos.**
+ElevenLabs is stubbed in every automated test: **running the suite consumes no
+credits.**
 
 ---
 
-## Custo da ElevenLabs
+## ElevenLabs cost
 
-A conta free dá 10k caracteres/mês (20k nos modelos flash/turbo). Uma carta tem
-10–40 caracteres.
+The free account gives 10k characters/month (20k on the flash/turbo models). A
+card is 10–40 characters.
 
-Três decisões mantêm o consumo baixo:
+Three decisions keep usage low:
 
-1. **Cache endereçado por conteúdo.** Cada combinação (texto, voz, modelo,
-   formato) é sintetizada uma única vez. As respostas trazem `X-Cache` e
+1. **Content-addressed cache.** Each combination (text, voice, model, format) is
+   synthesized exactly once. Responses carry `X-Cache` and
    `X-Characters-Billed`.
-2. **Reprodução lenta no navegador.** 0.75× e 0.5× saem do `playbackRate`, sem
-   pedir áudio novo.
-3. **`preload="none"`.** Folhear cartas não baixa áudio; só o botão *Ouvir* baixa.
+2. **Slow playback in the browser.** 0.75× and 0.5× come from `playbackRate`, no
+   new audio requested.
+3. **`preload="none"`.** Flipping through cards downloads no audio; only the
+   *Listen* button does.
 
-Para dobrar a cota, troque para o modelo mais barato no `.env`:
+To double the quota, switch to the cheaper model in `.env`:
 
 ```ini
 ELEVENLABS_MODEL_ID=eleven_flash_v2_5
@@ -143,65 +144,66 @@ ELEVENLABS_MODEL_ID=eleven_flash_v2_5
 
 ---
 
-## Conteúdo
+## Content
 
-95 cartas iniciais em três níveis, oito tipos (vocabulário, frase, pergunta,
-expressão, verbo, pronúncia, entonação) e quinze temas.
+95 starter cards across three levels, eight types (vocabulary, phrase, question,
+expression, verb, pronunciation, intonation) and fifteen themes.
 
-Os níveis são **definidos pela aplicação** e não correspondem a CEFR.
+The levels are **defined by the app** and do not map to CEFR.
 
 ```bash
-curl 'localhost:8000/api/content/export?fmt=csv' -o baralho.csv
-curl -F 'file=@baralho.csv' localhost:8000/api/content/validate
+curl 'localhost:8000/api/content/export?fmt=csv' -o deck.csv
+curl -F 'file=@deck.csv' localhost:8000/api/content/validate
 ```
 
-O validador confere ids repetidos, texto duplicado, tamanho por nível,
-pontuação de pergunta espanhola (`¿…?`), caracteres fora do alfabeto espanhol e
-se os fonemas-alvo realmente aparecem na pronúncia. Traduções e explicações
-gramaticais geradas por modelo **não** são presumidas corretas — o dataset
-inicial foi escrito à mão, e os fonemas esperados sempre vêm do `espeak-ng`.
+The validator checks for repeated ids, duplicate text, length per level, Spanish
+question punctuation (`¿…?`), characters outside the Spanish alphabet, and
+whether the target phonemes actually appear in the pronunciation.
+Model-generated translations and grammar notes are **not** assumed correct — the
+starter dataset was written by hand, and the expected phonemes always come from
+`espeak-ng`.
 
 ---
 
-## Configuração
+## Configuration
 
-Tudo em `.env` (veja `.env.example`). Os mais úteis:
+Everything in `.env` (see `.env.example`). The most useful ones:
 
-| Variável | Padrão | Para quê |
+| Variable | Default | What for |
 |---|---|---|
-| `SPANISH_ACCENT` | `es-419` | `es-419` latino-americano, `es` peninsular |
-| `ELEVENLABS_MODEL_ID` | `eleven_multilingual_v2` | `eleven_flash_v2_5` custa metade |
-| `WHISPER_MODEL` | `small` | `base` é mais rápido, `medium` mais preciso |
-| `PHONEME_ASSESSMENT_ENABLED` | `1` | `0` desliga a análise por som |
+| `SPANISH_ACCENT` | `es-419` | `es-419` Latin American, `es` peninsular |
+| `ELEVENLABS_MODEL_ID` | `eleven_multilingual_v2` | `eleven_flash_v2_5` costs half |
+| `WHISPER_MODEL` | `small` | `base` is faster, `medium` more accurate |
+| `PHONEME_ASSESSMENT_ENABLED` | `1` | `0` turns off per-sound analysis |
 
-O acento muda a referência de verdade: `gracias` é `ɡɾasjas` em `es-419` e
-`ɡɾaθjas` em `es`. As duas variantes são aceitas — seseo e distinción não contam
-como erro.
+The accent genuinely changes the reference: `gracias` is `ɡɾasjas` in `es-419`
+and `ɡɾaθjas` in `es`. Both variants are accepted — seseo and distinción do not
+count as errors.
 
 ---
 
-## Compromissos assumidos
+## Trade-offs taken
 
-- **Precisão da pronúncia.** A detecção foi validada contra fala sintética com
-  sotaque, não contra gravações de estudantes reais. Os limiares são
-  conservadores e devem ser recalibrados com áudio real. Ver
+- **Pronunciation accuracy.** Detection was validated against accented synthetic
+  speech, not against recordings of real learners. The thresholds are
+  conservative and should be recalibrated with real audio. See
   `docs/pronunciation-assessment.md` §7.
-- **Desempenho.** `small` + int8 em vez de modelos maiores: ~137–242 ms por
-  trecho na análise de fonemas, ~2–4 s na transcrição, numa CPU sem GPU.
-- **Custo.** O áudio de referência vem da nuvem porque voz sintética local boa o
-  bastante para servir de modelo de pronúncia não cabe neste orçamento de
-  hardware. O cache limita isso a uma chamada por carta.
-- **Sem LLM.** Um modelo local de 4B foi avaliado e removido: ele não
-  acrescentava nenhum fato ao retorno e errava fonética e gramática. Veja
-  `docs/architecture.md` para a medição que levou a essa decisão.
-- **As notas servem ao estudo.** Não certificam proficiência.
+- **Performance.** `small` + int8 instead of larger models: ~137–242 ms per
+  utterance for phoneme analysis, ~2–4 s for transcription, on a CPU with no GPU.
+- **Cost.** Reference audio comes from the cloud because local synthetic speech
+  good enough to serve as a pronunciation model does not fit this hardware
+  budget. The cache holds that down to one call per card.
+- **No LLM.** A local 4B model was evaluated and removed: it added no fact to the
+  feedback and got phonetics and grammar wrong. See `docs/architecture.md` for
+  the measurements behind that decision.
+- **The scores serve the study.** They do not certify proficiency.
 
-## Licenças dos modelos
+## Model licenses
 
-`wav2vec2-lv-60-espeak-cv-ft` e a build int8 ONNX: Apache-2.0. `faster-whisper`:
-MIT. `espeak-ng`: GPLv3 (usado como processo externo).
+`wav2vec2-lv-60-espeak-cv-ft` and the int8 ONNX build: Apache-2.0.
+`faster-whisper`: MIT. `espeak-ng`: GPLv3 (used as an external process).
 
-## Documentação
+## Documentation
 
-- [`docs/architecture.md`](docs/architecture.md) — módulos, fronteiras, degradação
-- [`docs/pronunciation-assessment.md`](docs/pronunciation-assessment.md) — medidas, fórmulas, limitações
+- [`docs/architecture.md`](docs/architecture.md) — modules, boundaries, degradation
+- [`docs/pronunciation-assessment.md`](docs/pronunciation-assessment.md) — measurements, formulas, limitations

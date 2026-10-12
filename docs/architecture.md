@@ -1,149 +1,151 @@
-# Arquitetura
+# Architecture
 
-## Princípio
+## Principle
 
-Dez módulos com fronteiras explícitas. O que mais importa: **transcrição,
-avaliação de pronúncia e LLM não se conhecem**. Cada um pode ser trocado sem
-tocar nos outros, e dois dos três podem falhar sem derrubar a aula.
+Ten modules with explicit boundaries. What matters most: **transcription,
+pronunciation assessment and LLM know nothing about each other**. Each can be
+swapped without touching the others, and two of the three can fail without
+taking the lesson down.
 
 ```
 backend/src/sptrainer/
-├── config.py          configuração por ambiente; segredo nunca entra em repr()
-├── content/           modelo, JSON/CSV, validação, dataset inicial
-├── scheduling/        filtros, sorteio, anti-repetição
-├── audio/             decodificação do navegador, utilidades de sinal
-├── stt/               faster-whisper + timestamps por palavra
-├── assessment/        ← o núcleo
-│   ├── g2p.py         espeak-ng → fonemas esperados
-│   ├── phonemes.py    wav2vec2 ONNX → fonemas ouvidos + GOP
-│   ├── align.py       alinhamento Needleman-Wunsch
-│   ├── accents.py     equivalências de sotaque (não transitivas)
-│   ├── prosody.py     ritmo, pausas, F0
-│   ├── scoring.py     fórmulas puras
-│   ├── summary.py     frase de retorno, determinística
-│   └── pipeline.py    orquestra e decide o que pode ser afirmado
-├── tts/               ElevenLabs + cache + perfil da referência
+├── config.py          environment configuration; secrets never reach repr()
+├── content/           model, JSON/CSV, validation, starter dataset
+├── scheduling/        filters, draw, anti-repetition
+├── audio/             browser decoding, signal utilities
+├── stt/               faster-whisper + per-word timestamps
+├── assessment/        ← the core
+│   ├── g2p.py         espeak-ng → expected phonemes
+│   ├── phonemes.py    wav2vec2 ONNX → heard phonemes + GOP
+│   ├── align.py       Needleman-Wunsch alignment
+│   ├── accents.py     accent equivalences (non-transitive)
+│   ├── prosody.py     rhythm, pauses, F0
+│   ├── scoring.py     pure formulas
+│   ├── summary.py     feedback sentence, deterministic
+│   └── pipeline.py    orchestrates and decides what may be asserted
+├── tts/               ElevenLabs + cache + reference profile
 ├── progress/          SQLite
 └── api/               FastAPI
 ```
 
-## Local vs. nuvem
+## Local vs. cloud
 
-| Componente | Onde | Observação |
+| Component | Where | Note |
 |---|---|---|
-| G2P, decodificação, transcrição, fonemas, prosódia, notas, resumo | **local** | funciona offline |
-| Áudio de referência (ElevenLabs) | **nuvem** | uma chamada por carta, depois cache |
+| G2P, decoding, transcription, phonemes, prosody, scores, summary | **local** | works offline |
+| Reference audio (ElevenLabs) | **cloud** | one call per card, cached afterwards |
 
-## O contrato que sustenta a honestidade
+## The contract that holds the honesty up
 
-`AssessmentResult` carrega `capabilities` e `limitations`, e **toda observação
-nomeia sua evidência** (`transcript`, `phoneme_acoustic`, `prosody`). Se o modelo
-acústico estiver desligado, ausente ou falhar:
+`AssessmentResult` carries `capabilities` and `limitations`, and **every
+observation names its evidence** (`transcript`, `phoneme_acoustic`, `prosody`).
+If the acoustic model is disabled, missing or fails:
 
-- `PHONEME_ANALYSIS` não entra em `capabilities`;
-- nenhuma observação de fonema é gerada;
-- `phoneme_accuracy` é `None` e os pesos da nota são renormalizados;
-- a limitação aparece em texto, na tela.
+- `PHONEME_ANALYSIS` does not enter `capabilities`;
+- no phoneme observation is produced;
+- `phoneme_accuracy` is `None` and the score weights are renormalized;
+- the limitation shows up as text, on screen.
 
-Nada é estimado para preencher a lacuna.
+Nothing is estimated to fill the gap.
 
-## Degradação
+## Degradation
 
-| Falha | Consequência |
+| Failure | Consequence |
 |---|---|
-| Sem `ELEVENLABS_API_KEY` | cartas e gravação funcionam; áudio novo → 503 |
-| Cota da ElevenLabs esgotada | cartas já em cache continuam tocando |
-| Modelo de fonemas ausente | avaliação cai para transcrição + prosódia, e declara |
-| `ffmpeg` ausente | erro claro na gravação |
-| Gravação muda | `no_speech_detected`, **não** nota zero |
+| No `ELEVENLABS_API_KEY` | cards and recording work; new audio → 503 |
+| ElevenLabs quota exhausted | already-cached cards keep playing |
+| Phoneme model missing | assessment falls back to transcript + prosody, and declares it |
+| `ffmpeg` missing | clear error on recording |
+| Silent recording | `no_speech_detected`, **not** a zero score |
 
-## Reaproveitamento do protótipo
+## Reuse from the prototype
 
-| Origem (`voice-assistant`) | Destino |
+| Origin (`voice-assistant`) | Destination |
 |---|---|
-| `ollama_service.py` | não reaproveitado — o trainer não usa LLM |
-| `speech.py` | `tts/elevenlabs_client.py` — síntese + tradução de erros; `play_bytes` descartado |
-| `transcription.py` | `stt/whisper.py` — `es` + timestamps por palavra |
-| `audio_input.py` | `audio/utils.py` — só as partes numpy/wave |
-| `config.py` | `config.py` — mesmo padrão |
-| `llm.py`, `main.py` | não reaproveitados (loop de conversa por voz) |
+| `ollama_service.py` | not reused — the trainer uses no LLM |
+| `speech.py` | `tts/elevenlabs_client.py` — synthesis + error translation; `play_bytes` dropped |
+| `transcription.py` | `stt/whisper.py` — `es` + per-word timestamps |
+| `audio_input.py` | `audio/utils.py` — only the numpy/wave parts |
+| `config.py` | `config.py` — same pattern |
+| `llm.py`, `main.py` | not reused (voice conversation loop) |
 
-O microfone e a reprodução saíram do Python e foram para o navegador: o backend
-não abre dispositivo de áudio.
+The microphone and playback left Python and went to the browser: the backend
+opens no audio device.
 
-## Decisões e seus porquês
+## Decisions and their reasons
 
-1. **ONNX Runtime, não PyTorch.** ~50 MB contra ~900 MB; 137–242 ms por trecho na CPU.
-2. **GOP relativo à referência da própria carta.** Zero falsos positivos contra
-   5/79 do limiar absoluto. Ver `pronunciation-assessment.md` §3.3.
-3. **Nenhum LLM.** Avaliado e removido: não acrescentava fato ao retorno e errava
-   fonética e gramática. Ver "Por que não há LLM".
-4. **Gravação no navegador.** Tira o microfone do processo Python e faz a
-   interface funcionar em qualquer máquina.
-5. **SQLite com uma linha por tentativa.** Estatística é consulta, não coluna;
-   nenhum relatório novo exige migração. **O áudio nunca é guardado.**
-6. **Equivalência fonética sem fecho transitivo.** Evita que `s~h` + `x~h`
-   tornem *casa* e *caja* iguais.
+1. **ONNX Runtime, not PyTorch.** ~50 MB against ~900 MB; 137–242 ms per utterance on CPU.
+2. **GOP relative to the card's own reference.** Zero false positives against
+   5/79 from the absolute threshold. See `pronunciation-assessment.md` §3.3.
+3. **No LLM.** Evaluated and removed: it added no fact to the feedback and got
+   phonetics and grammar wrong. See "Why there is no LLM".
+4. **Recording in the browser.** Takes the microphone out of the Python process
+   and makes the interface work on any machine.
+5. **SQLite with one row per attempt.** Statistics are a query, not a column; no
+   new report requires a migration. **Audio is never stored.**
+6. **Phonetic equivalence without transitive closure.** Keeps `s~h` + `x~h` from
+   making *casa* and *caja* identical.
 
-## Por que não há LLM
+## Why there is no LLM
 
-Um `qwen3:4b-instruct` local chegou a ser integrado (explicações de vocabulário
-e gramática, e um resumo da tentativa reescrito pelo modelo) e depois foi
-**removido por inteiro**. O registro da avaliação fica aqui porque a conclusão é
-reaproveitável.
+A local `qwen3:4b-instruct` was integrated at one point (vocabulary and grammar
+explanations, plus an attempt summary rewritten by the model) and then **removed
+entirely**. The record of the evaluation stays here because the conclusion is
+reusable.
 
-### O que foi medido nesta máquina (CPU, sem GPU)
+### What was measured on this machine (CPU, no GPU)
 
-| tarefa | `qwen3:4b-instruct` | `qwen3:4b` |
+| task | `qwen3:4b-instruct` | `qwen3:4b` |
 |---|---|---|
-| explicação de vocabulário | 10.1 s | 27.2 s (estourou o teto de tokens) |
-| explicação de gramática | 10.9 s | 20.9 s (idem) |
-| resumo de tentativa | 7–15 s | — |
+| vocabulary explanation | 10.1 s | 27.2 s (hit the token ceiling) |
+| grammar explanation | 10.9 s | 20.9 s (same) |
+| attempt summary | 7–15 s | — |
 
-### Por que não compensava
+### Why it did not pay off
 
-1. **O resumo não acrescentava informação.** Para não inventar diagnóstico, o
-   modelo tinha de ficar preso a uma lista fechada de fatos, conferida por um
-   verificador. Preso assim, ele só reescrevia o que o resumo determinístico já
-   dizia — em 15 s no lugar de 4 s.
+1. **The summary added no information.** To keep it from inventing a diagnosis,
+   the model had to be pinned to a closed list of facts, checked by a verifier.
+   Pinned that way, it only rewrote what the deterministic summary already said
+   — in 15 s instead of 4 s.
 
-2. **As explicações erravam.** Verificado: disse que `llave` "se pronuncia
-   ah-veh" (é *ya-ve*), chamou `hubiera tenido` de "condicional passado" (é
-   mais-que-perfeito do subjuntivo) e afirmou que `rojo` é falso amigo do
-   português (não é). Foi preciso proibi-lo de falar de pronúncia e carimbar
-   todo texto como gerado — ou seja, o recurso vinha com uma ressalva que
-   admitia não dar para confiar nele.
+2. **The explanations were wrong.** Verified: it said `llave` "is pronounced
+   ah-veh" (it is *ya-ve*), called `hubiera tenido` a "past conditional" (it is
+   the pluperfect subjunctive) and claimed `rojo` is a false friend of
+   Portuguese (it is not). It had to be forbidden from discussing pronunciation
+   and every piece of its text stamped as generated — that is, the feature came
+   with a disclaimer admitting it could not be trusted.
 
-3. **O custo era real.** 2,5 GB em disco, ~3 GB de RAM carregado, e o serviço
-   subia sozinho por trás (`OLLAMA_AUTOSTART=1`) quando alguém pedia explicação.
+3. **The cost was real.** 2.5 GB on disk, ~3 GB of RAM once loaded, and the
+   service started itself in the background (`OLLAMA_AUTOSTART=1`) whenever
+   someone asked for an explanation.
 
-A pronúncia sempre veio do `espeak-ng`, determinística; o diagnóstico sempre veio
-da medida acústica. O modelo de linguagem não participava de nenhum dos dois.
-Tirá-lo não custou nenhuma funcionalidade do núcleo.
+Pronunciation always came from `espeak-ng`, deterministic; the diagnosis always
+came from the acoustic measurement. The language model took part in neither.
+Removing it cost no core functionality.
 
-O que sobrou no lugar: `assessment/summary.py`, uma função pura que monta a frase
-de retorno a partir das observações medidas — instantânea e incapaz de citar algo
-que não foi medido.
+What took its place: `assessment/summary.py`, a pure function that assembles the
+feedback sentence from the measured observations — instant, and unable to cite
+anything that was not measured.
 
-**Onde um LLM ainda faria sentido:** gerar flashcards em lote, offline, passando
-pelo validador de conteúdo e por revisão humana antes de entrar no baralho. Aí a
-latência não importa e o erro é filtrado antes de chegar ao aluno. Não está
-implementado.
+**Where an LLM would still make sense:** generating flashcards in bulk, offline,
+passing through the content validator and human review before entering the deck.
+There the latency does not matter and the errors are filtered before reaching the
+learner. Not implemented.
 
-## Seleção adaptativa (SRS-lite)
+## Adaptive selection (SRS-lite)
 
-`Order.ADAPTIVE` repondera o sorteio pela melhor nota de cada carta:
+`Order.ADAPTIVE` reweights the draw by each card's best score:
 
-| situação | peso |
+| situation | weight |
 |---|---|
-| nunca praticada | 2.0 |
-| praticada, abaixo de 80 | 1.0 + 3.0 × (quanto falta) |
-| dominada (≥ 80) | 0.3 |
+| never practised | 2.0 |
+| practised, below 80 | 1.0 + 3.0 × (how much is missing) |
+| mastered (≥ 80) | 0.3 |
 
-Uma carta com nota 0 pesa 4.0 — cerca de treze vezes mais que uma dominada. A
-carta inédita fica acima de uma carta "média" de propósito: conteúdo novo vale
-mais que insistir no que já sai razoável.
+A card scoring 0 weighs 4.0 — roughly thirteen times a mastered one. The unseen
+card sits above an "average" card on purpose: new material is worth more than
+drilling what already comes out reasonably.
 
-Repetição espaçada de verdade agenda por data. Isto é deliberadamente mais
-simples e sem estado temporal, para não exigir migração depois. A janela
-anti-repetição continua valendo e tem precedência sobre o peso.
+Real spaced repetition schedules by date. This is deliberately simpler and
+without temporal state, so it does not force a migration later. The
+anti-repetition window still applies and takes precedence over the weight.
