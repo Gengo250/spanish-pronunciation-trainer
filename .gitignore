@@ -1,0 +1,35 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+frontend/dist/
+.vite/
+*.tsbuildinfo
+
+# Runtime data (regenerable)
+data/cache/
+data/*.db
+data/recordings/
+models/
+
+# OS/editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Estado do run.sh (pids e logs)
+.run/
