@@ -45,7 +45,9 @@
 .btn--lg { padding: 0.875rem var(--s5); font-size: var(--text-md); }
 .btn--block { width: 100%; }
 
-.btn__key {
+/* Shortcut badge, shared by `.btn` and the record control. */
+.btn__key,
+.rec__key {
   font-family: var(--font-data);
   font-size: var(--text-xs);
   opacity: 0.6;
@@ -509,6 +511,9 @@
 @keyframes beat { 50% { opacity: 0.35; transform: scale(0.8); } }
 
 .rec__timer { font-family: var(--font-data); font-size: var(--text-sm); opacity: 0.85; }
+
+/* Slightly stronger than on a `.btn`: it sits on the filled accent surface. */
+.rec__key { opacity: 0.75; }
 
 .hint {
   margin-top: var(--s4);

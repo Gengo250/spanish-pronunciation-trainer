@@ -145,6 +145,8 @@ export default function Practice() {
       const target = event.target as HTMLElement | null;
       if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
       if (event.metaKey || event.ctrlKey || event.altKey) return;
+      // Holding a key down would otherwise start and stop a recording in a loop.
+      if (event.repeat) return;
 
       const key = event.key.toLowerCase();
       if (event.code === "Space") {

@@ -19,6 +19,9 @@ type Props = {
   onStop: () => void;
 };
 
+/** The key that starts and stops a recording, mirrored in the keydown handler. */
+const RECORD_KEY = "Space";
+
 export function RecordControl({ state, elapsed, processing, disabled, onStart, onStop }: Props) {
   const visual = processing ? "processing" : state;
   const recording = state === "recording";
@@ -33,6 +36,9 @@ export function RecordControl({ state, elapsed, processing, disabled, onStart, o
           : t.practice.speak;
 
   const busy = visual === "processing" || visual === "requesting";
+  // Only on the state the badge describes: while recording the timer has the
+  // slot, and while busy the shortcut is ignored anyway.
+  const showKey = !busy && !recording;
 
   return (
     <button
@@ -42,6 +48,7 @@ export function RecordControl({ state, elapsed, processing, disabled, onStart, o
       disabled={disabled || busy}
       onClick={recording ? onStop : onStart}
       aria-label={recording ? t.a11y.stopButton : t.a11y.recordButton}
+      aria-keyshortcuts={RECORD_KEY}
     >
       {visual === "processing" ? (
         <span className="spinner" aria-hidden="true" />
@@ -50,6 +57,11 @@ export function RecordControl({ state, elapsed, processing, disabled, onStart, o
       )}
       <span>{label}</span>
       {recording && <span className="rec__timer">{elapsed.toFixed(1)}s</span>}
+      {showKey && (
+        <kbd className="rec__key" aria-hidden="true">
+          {RECORD_KEY}
+        </kbd>
+      )}
     </button>
   );
 }
